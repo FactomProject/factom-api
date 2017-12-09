@@ -59,6 +59,11 @@ class Factomd(BaseAPI):
             'message': message
         })
 
+    def commit_entry(self, message):
+        return self._request('commit-entry', {
+            'message': message
+        })
+
     def entry_credit_balance(self, ec_address=None):
         return self._request('entry-credit-balance', {
             'address': ec_address or self.ec_address
@@ -79,6 +84,11 @@ class Factomd(BaseAPI):
 
     def reveal_chain(self, entry):
         return self._request('reveal-chain', {
+            'entry': entry
+        })
+
+    def reveal_entry(self, entry):
+        return self._request('reveal-entry', {
             'entry': entry
         })
 
@@ -160,9 +170,9 @@ class FactomWalletd(BaseAPI):
             },
             'ecpub': ec_address or self.ec_address
         })
-        factomd.commit_chain(calls['commit']['params']['message'])
+        factomd.commit_entry(calls['commit']['params']['message'])
         time.sleep(2)
-        return factomd.reveal_chain(calls['reveal']['params']['entry'])
+        return factomd.reveal_entry(calls['reveal']['params']['entry'])
 
     def xact_fact_to_ec(self, factomd, amount, fa_address=None,
                         ec_address=None):
