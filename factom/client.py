@@ -6,7 +6,10 @@ from urllib.parse import urljoin
 
 from .exceptions import handle_error_response
 from .session import FactomAPISession
-from .utils import hex
+from .utils import hex, unhex
+
+
+NULL_BLOCK = '0000000000000000000000000000000000000000000000000000000000000000'  # noqa
 
 
 class BaseAPI(object):
@@ -54,6 +57,11 @@ class BaseAPI(object):
 class Factomd(BaseAPI):
     host = 'http://localhost:8088'
 
+    def chain_head(self, chain_id):
+        return self._request('chain-head', {
+            'chainid': chain_id
+        })
+
     def commit_chain(self, message):
         return self._request('commit-chain', {
             'message': message
@@ -62,6 +70,16 @@ class Factomd(BaseAPI):
     def commit_entry(self, message):
         return self._request('commit-entry', {
             'message': message
+        })
+
+    def entry(self, hash):
+        return self._request('entry', {
+            'hash': hash
+        })
+
+    def entry_block(self, keymr):
+        return self._request('entry-block', {
+            'keymr': keymr
         })
 
     def entry_credit_balance(self, ec_address=None):
@@ -91,6 +109,23 @@ class Factomd(BaseAPI):
         return self._request('reveal-entry', {
             'entry': entry
         })
+
+    # Convenience methods
+
+    def read_chain(self, chain_id):
+        entries = []
+        keymr = self.chain_head(chain_id)['chainhead']
+        while keymr != NULL_BLOCK:
+            block = self.entry_block(keymr)
+            for hash in reversed(block['entrylist']):
+                entry = self.entry(hash['entryhash'])
+                entries.append({
+                    'chainid': entry['chainid'],
+                    'extids': unhex(entry['extids']),
+                    'content': unhex(entry['content']),
+                })
+            keymr = block['header']['prevkeymr']
+        return entries
 
 
 class FactomWalletd(BaseAPI):
@@ -146,7 +181,7 @@ class FactomWalletd(BaseAPI):
 
     # Convenience methods
 
-    def create_chain(self, factomd, ext_ids, content, ec_address=None):
+    def new_chain(self, factomd, ext_ids, content, ec_address=None):
         calls = self._request('compose-chain', {
             'chain': {
                 'firstentry': {
@@ -160,8 +195,7 @@ class FactomWalletd(BaseAPI):
         time.sleep(2)
         return factomd.reveal_chain(calls['reveal']['params']['entry'])
 
-    def create_entry(self, factomd, chain_id, ext_ids, content,
-                     ec_address=None):
+    def new_entry(self, factomd, chain_id, ext_ids, content, ec_address=None):
         calls = self._request('compose-entry', {
             'entry': {
                 'chainid': chain_id,
@@ -174,8 +208,7 @@ class FactomWalletd(BaseAPI):
         time.sleep(2)
         return factomd.reveal_entry(calls['reveal']['params']['entry'])
 
-    def xact_fact_to_ec(self, factomd, amount, fa_address=None,
-                        ec_address=None):
+    def fact_to_ec(self, factomd, amount, fa_address=None, ec_address=None):
         name = self._xact_name()
         self.new_transaction(name)
         self.add_input(name, amount, fa_address)
@@ -185,7 +218,7 @@ class FactomWalletd(BaseAPI):
         call = self.compose_transaction(name)
         return factomd.factoid_submit(call['params']['transaction'])
 
-    def xact_fact_to_fact(self, factomd, amount, fa_to, fa_from=None):
+    def fact_to_fact(self, factomd, amount, fa_to, fa_from=None):
         name = self._xact_name()
         self.new_transaction(name)
         self.add_input(name, amount, fa_from)

@@ -7,9 +7,8 @@ def handle_error_response(resp):
         -32603: InternalError,
         -32601: MethodNotFound,
         -32011: RepeatedCommit,
+        -32008: BlockNotFound,
     }
-
-    print(resp.content)
 
     error = resp.json().get('error', {})
     message = error.get('message')
@@ -61,4 +60,8 @@ class MethodNotFound(FactomAPIError):
 
 
 class RepeatedCommit(FactomAPIError):
+    pass
+
+
+class BlockNotFound(FactomAPIError):
     pass

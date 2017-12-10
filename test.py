@@ -17,7 +17,8 @@ try:
     #print(fd.factoid_submit(xact_id))
 
     #print(fd.entry_credit_balance())
-    print(fw.create_entry(fd, CHAIN, ['some', 'more'], 'data'))
+    #print(fw.new_entry(fd, CHAIN, ['ext41', 'ext42'], 'data4'))
+    print(fd.read_chain(CHAIN))
 
 except FactomAPIError as e:
     print(e)
