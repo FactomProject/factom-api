@@ -18,13 +18,13 @@ class FactomAPISession(Session):
         })
 
     def init_basic_auth(self, username, password):
-        credentials = b64encode('{}:{}'.format(username, password))
+        credentials = b64encode('{}:{}'.format(username, password).encode())
         self.headers.update({
-            'Authorization': 'Basic {}'.format(credentials)
+            'Authorization': 'Basic {}'.format(credentials.decode())
         })
 
     def init_tls(self, certfile):
-        self.cert = certfile
+        self.verify = certfile
 
 
 __all__ = ['FactomAPISession']

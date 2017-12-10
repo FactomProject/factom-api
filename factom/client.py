@@ -1,7 +1,6 @@
 import random
 import string
 import time
-import uuid
 from urllib.parse import urljoin
 
 from .exceptions import handle_error_response
@@ -19,10 +18,12 @@ class BaseAPI(object):
         self.ec_address = ec_address
         self.fa_address = fa_address
         self.version = version
+
         if host:
             self.host = host
 
         self.session = FactomAPISession()
+
         if username and password:
             self.session.init_basic_auth(username, password)
 

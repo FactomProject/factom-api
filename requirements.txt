@@ -2,3 +2,4 @@ flake8==3.5.*
 pytest==3.3.*
 requests==2.18.*
 responses==0.8.*
+tox==2.9.*

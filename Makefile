@@ -11,6 +11,8 @@ sandbox: ## Run the factom sandbox server.
 	docker-compose up factom-sandbox
 test: ## Run test suite.
 	docker-compose run factom-api pytest
+tox: ## Run tox.
+	docker-compose run factom-api tox
 clean: ## Clean the application.
 	find . -name '*.py[co]' -delete
 	find . -type d -name "__pycache__" -delete
