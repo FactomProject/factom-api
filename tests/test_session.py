@@ -13,7 +13,6 @@ def test_request_headers(request):
     s = FactomAPISession()
     r = s.prepare_request(request)
 
-    assert r.headers['User-Agent'].startswith('factom-api/')
     assert r.headers['Accept-Charset'] == 'utf-8'
     assert r.headers['Content-Type'] == 'text/plain'
 

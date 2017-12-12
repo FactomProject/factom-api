@@ -10,9 +10,7 @@ class FactomAPISession(Session):
         """
         super(FactomAPISession, self).__init__(*args, **kwargs)
 
-        from . import __version__
         self.headers.update({
-            'User-Agent': 'factom-api/{0}'.format(__version__),
             'Accept-Charset': 'utf-8',
             'Content-Type': 'text/plain',
         })

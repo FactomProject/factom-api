@@ -11,7 +11,7 @@ except (IOError, ImportError, OSError):
 
 
 CLASSIFIERS = [
-    'Development Status :: 3 - Alpha',
+    'Development Status :: 4 - Beta',
     'Intended Audience :: Developers',
     'License :: OSI Approved :: MIT License',
     'Operating System :: OS Independent',
@@ -20,9 +20,10 @@ CLASSIFIERS = [
     'Programming Language :: Python :: 3.5',
     'Programming Language :: Python :: 3.6',
     'Topic :: Internet :: WWW/HTTP',
-    'Topic :: Multimedia :: Graphics',
-    'Topic :: Scientific/Engineering :: Image Recognition',
     'Topic :: Security',
+    'Topic :: Security :: Cryptography',
+    'Topic :: Software Development',
+    'Topic :: System :: Monitoring',
 ]
 
 
@@ -30,7 +31,7 @@ setup(
     author="Ben Homnick",
     author_email="bhomnick@gmail.com",
     name="factom-api",
-    version='0.0.1',
+    version='0.1.0',
     description="Python client library for the Factom API",
     long_description=long_description,
     license='MIT License',
