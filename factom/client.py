@@ -1,7 +1,10 @@
 import random
 import string
 import time
-from urllib.parse import urljoin
+try:
+    from urllib.parse import urlparse, urljoin  # noqa
+except ImportError:
+    from urlparse import urlparse, urljoin  # noqa
 
 from .exceptions import handle_error_response
 from .session import FactomAPISession

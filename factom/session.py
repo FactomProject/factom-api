@@ -8,7 +8,7 @@ class FactomAPISession(Session):
         """
         Creates a new CoreAPISession instance.
         """
-        super().__init__(*args, **kwargs)
+        super(FactomAPISession, self).__init__(*args, **kwargs)
 
         from . import __version__
         self.headers.update({

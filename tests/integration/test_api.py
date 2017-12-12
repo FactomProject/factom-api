@@ -1,5 +1,8 @@
 import pytest
-from unittest.mock import patch
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
 
 from . import assert_jsonrpc_calls, responses  # noqa
 

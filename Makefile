@@ -4,15 +4,15 @@ SHELL=/bin/bash
 build: ## Build all docker images.
 	docker-compose build
 flake8: ## Run flake8.
-	docker-compose run factom-api flake8 .
+	docker-compose run factom-api bash -lc "flake8 ."
 shell: ## Open a bash shell inside docker conatiner.
 	docker-compose run factom-api bash
 sandbox: ## Run the factom sandbox server.
 	docker-compose up factom-sandbox
-test: ## Run test suite.
-	docker-compose run factom-api pytest
+test: ## Run test suite with latest Python version.
+	docker-compose run factom-api bash -lc "python3.6 -m pytest"
 tox: ## Run tox.
-	docker-compose run factom-api tox
+	docker-compose run factom-api bash -lc "tox"
 clean: ## Clean the application.
 	find . -name '*.py[co]' -delete
 	find . -type d -name "__pycache__" -delete

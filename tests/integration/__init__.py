@@ -6,10 +6,7 @@ import responses as responses_
 def assert_jsonrpc_calls(resp_mock, calls):
     assert len(calls) == len(resp_mock.calls), "Unexpected call count"
     for call, expected in zip(resp_mock.calls, calls):
-        data = json.loads(call.request.body)
-        print("***", expected, data)
-
-
+        data = json.loads(call.request.body.decode())
         assert expected == (data['method'], data['params'])
 
 
@@ -245,7 +242,7 @@ WALLETD_RESPONSES = {
 
 def _callback(choices):
     def _handle(request):
-        method = json.loads(request.body)['method']
+        method = json.loads(request.body.decode())['method']
         return (200, {}, json.dumps({
             'jsonrpc': '2.0',
             'id': 0,
