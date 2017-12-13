@@ -1,2 +1,104 @@
 # factom-api
-Python client library for the Factom API
+
+This library provides Python clients for interacting with the factomd and factom-walletd APIs. While not all API methods have been implemented yet, you'll find most of what you need to build a working application are available, along with shortcut methods for accomplishing common tasks involving multiple calls between the wallet and daemon.
+
+The API client is fully tested under Python 2.7, 3.4, 3.5, and 3.6, and likely works with other versions as well.
+
+If you're unfamiliar with Factom, I encourage you to [read the documentation](http://docs.factom.com/), especially the [white paper](https://github.com/FactomProject/FactomDocs/blob/master/whitepaper.md). In a nutshell, Factom provides a layer on top of the Bitcoin blockchain making it possible to secure data faster and in larger amounts than the Bitcoin network would allow alone.
+
+## Getting started
+
+### Setting up the Factom sandbox
+
+First things first. For development I recommend running a local installation of factomd and factom-walletd so you're not wasting credits. This repository includes a docker-compose file that runs a ready-out-of-the-box sandbox environment I've put together. If you're curious you can check out the [factom-docker repository](https://github.com/bhomnick/factom-docker). Make sure you have [docker-compose](https://docs.docker.com/compose/install/) installed, then open a new terminal window and run:
+
+```
+$ docker-compose up factom-sandbox
+```
+
+For demonstration purposes, let's import a wallet address with a bunch of factoids and create a few new addresses. In a new terminal window:
+
+```
+$ docker-compose run factom-sandbox bash
+
+# Import an address containing a large amount of factoids
+root@8cd0d633bd16:/# factom-cli importaddress Fs3E9gV6DXsYzf7Fqx1fVBQPQXV695eP3k5XbmHEZVRLkMdD9qCK
+FA2jK2HcLnRdS94dEcU27rF3meoJfpUcZPSinpb7AwQvPRY6RL1Q
+
+# Create a new entry credit address
+root@8cd0d633bd16:/# factom-cli newecaddress
+EC2jhmCtabeTXGtuLi3AaPzvwSuqksdVsjfxXMXV5gPmipXc4GjC
+
+# Create a new factoid address
+root@8cd0d633bd16:/# factom-cli newfctaddress
+FA3TMQHrCrmLa4F9t442U3Ab3R9sM1gThYMDoygPEVtxrbHtFRtg
+```
+
+### Installing the API client
+
+The easiest way to install is directly from pip:
+
+```
+$ pip install factom-api
+```
+
+## Usage
+
+I'll go over a few common operations here you'll most likely use in applications. In general you'll need instances of both the wallet and factomd clients to build and submit transactions. To build new clients:
+
+```python
+from factom import Factomd, FactomWalletd
+
+# Default settings
+factomd = Factomd()
+walletd = FactomWalletd()
+
+# You can also specify default fct and ec addresses, change host, or specify RPC credentials, for example:
+fct_address = 'FA2jK2HcLnRdS94dEcU27rF3meoJfpUcZPSinpb7AwQvPRY6RL1Q'
+ec_address = 'EC2jhmCtabeTXGtuLi3AaPzvwSuqksdVsjfxXMXV5gPmipXc4GjC'
+
+factomd = Factomd(
+    host='http://someotherhost:8088',
+    fct_address=fct_address,
+    ec_address=ec_address,
+    username='rpc_username',
+    password='rpc_password'
+)
+```
+
+### Transacting factoids to factoids
+
+First let's query the balance in both of our fct addresses:
+
+```python
+>>> fct_address1 = 'FA2jK2HcLnRdS94dEcU27rF3meoJfpUcZPSinpb7AwQvPRY6RL1Q'
+>>> fct_address2 = 'FA3TMQHrCrmLa4F9t442U3Ab3R9sM1gThYMDoygPEVtxrbHtFRtg'
+>>> ec_address = 'EC2jhmCtabeTXGtuLi3AaPzvwSuqksdVsjfxXMXV5gPmipXc4GjC'
+
+# Initialize the two clients
+>>> factomd = Factomd()
+>>> walletd = FactomWalletd()
+
+# Query the balance in our first address. There should be a large amount
+>>> factomd.factoid_balance(fct_address1)
+{'balance': 1999999735950}
+
+# The second address should be empty.
+>>> factomd.factoid_balance(fct_address2)
+{'balance': 0}
+```
+
+The wallet clients provides a shorcut method `fct_to_fct()` which performs all the API calls needed to submit a simple fct to fct transaction. This includes adding inputs and outputs, calculating the fee, building the signed transaction, and submitting it to the network.
+
+```python
+>>> walletd.fct_to_fct(factomd, 50000, fct_to=fct_address2, fct_from=fct_address1)
+{'message': 'Successfully submitted the transaction', 'txid': 'a4d641f13d82b1d1682549d44fa41c7e1b01f1a16f8cbddb5c695df53fcebfd7'}
+```
+
+The server reports the transaction was submitted and if we wait a few seconds we can see the results:
+
+```
+>>> factomd.factoid_balance(fct_address2)
+{'balance': 50000}
+```
+
