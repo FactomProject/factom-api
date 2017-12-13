@@ -1,1 +1,1 @@
-from .client import Factomd, FactomWalletd
+from .client import Factomd, FactomWalletd  # noqa

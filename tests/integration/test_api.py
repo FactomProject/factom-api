@@ -25,17 +25,17 @@ ENTRY_KEYMR = '8d87077d6d35f225c74e7a7cbcd9538cdb5642f5541ba77fc815f3b57ac10eb6'
 
 @pytest.fixture
 def factomd():
-    return Factomd(ec_address=EC_1, fa_address=FA_1)
+    return Factomd(ec_address=EC_1, fct_address=FA_1)
 
 
 @pytest.fixture
 def walletd():
     with patch.object(FactomWalletd, '_xact_name', return_value='TX_5XK1IX'):
-        yield FactomWalletd(ec_address=EC_1, fa_address=FA_1)
+        yield FactomWalletd(ec_address=EC_1, fct_address=FA_1)
 
 
-def test_fact_to_ec(responses, factomd, walletd):  # noqa
-    res = walletd.fact_to_ec(factomd, 50000)
+def test_fct_to_ec(responses, factomd, walletd):  # noqa
+    res = walletd.fct_to_ec(factomd, 50000)
 
     assert res == {
         'message': 'Successfully submitted the transaction',
@@ -60,8 +60,8 @@ def test_fact_to_ec(responses, factomd, walletd):  # noqa
     ])
 
 
-def test_fact_to_fact(responses, factomd, walletd):  # noqa
-    res = walletd.fact_to_fact(factomd, 50000, FA_2)
+def test_fct_to_fct(responses, factomd, walletd):  # noqa
+    res = walletd.fct_to_fct(factomd, 50000, FA_2)
 
     assert res == {
         'message': 'Successfully submitted the transaction',

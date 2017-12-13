@@ -16,10 +16,10 @@ NULL_BLOCK = '0000000000000000000000000000000000000000000000000000000000000000' 
 
 class BaseAPI(object):
 
-    def __init__(self, ec_address=None, fa_address=None, host=None,
+    def __init__(self, ec_address=None, fct_address=None, host=None,
                  version='v2', username=None, password=None, certfile=None):
         self.ec_address = ec_address
-        self.fa_address = fa_address
+        self.fct_address = fct_address
         self.version = version
 
         if host:
@@ -94,9 +94,9 @@ class Factomd(BaseAPI):
     def entry_credit_rate(self):
         return self._request('entry-credit-rate')
 
-    def factoid_balance(self, fa_address=None):
+    def factoid_balance(self, fct_address=None):
         return self._request('factoid-balance', {
-            'address': fa_address or self.fa_address
+            'address': fct_address or self.fct_address
         })
 
     def factoid_submit(self, transaction):
@@ -142,24 +142,24 @@ class FactomWalletd(BaseAPI):
             'address': ec_address or self.ec_address
         })
 
-    def add_fee(self, name, fa_address=None):
+    def add_fee(self, name, fct_address=None):
         return self._request('add-fee', {
             'tx-name': name,
-            'address': fa_address or self.fa_address
+            'address': fct_address or self.fct_address
         })
 
-    def add_input(self, name, amount, fa_address=None):
+    def add_input(self, name, amount, fct_address=None):
         return self._request('add-input', {
             'tx-name': name,
             'amount': amount,
-            'address': fa_address or self.fa_address
+            'address': fct_address or self.fct_address
         })
 
-    def add_output(self, name, amount, fa_address):
+    def add_output(self, name, amount, fct_address):
         return self._request('add-output', {
             'tx-name': name,
             'amount': amount,
-            'address': fa_address
+            'address': fct_address
         })
 
     def compose_transaction(self, name):
@@ -177,10 +177,10 @@ class FactomWalletd(BaseAPI):
             'tx-name': name
         })
 
-    def sub_fee(self, name, fa_address):
+    def sub_fee(self, name, fct_address):
         return self._request('sub-fee', {
             'tx-name': name,
-            'address': fa_address
+            'address': fct_address
         })
 
     # Convenience methods
@@ -212,22 +212,22 @@ class FactomWalletd(BaseAPI):
         time.sleep(2)
         return factomd.reveal_entry(calls['reveal']['params']['entry'])
 
-    def fact_to_ec(self, factomd, amount, fa_address=None, ec_address=None):
+    def fct_to_ec(self, factomd, amount, fct_address=None, ec_address=None):
         name = self._xact_name()
         self.new_transaction(name)
-        self.add_input(name, amount, fa_address)
+        self.add_input(name, amount, fct_address)
         self.add_ec_output(name, amount, ec_address)
-        self.add_fee(name, fa_address)
+        self.add_fee(name, fct_address)
         self.sign_transaction(name)
         call = self.compose_transaction(name)
         return factomd.factoid_submit(call['params']['transaction'])
 
-    def fact_to_fact(self, factomd, amount, fa_to, fa_from=None):
+    def fct_to_fct(self, factomd, amount, fct_to, fct_from=None):
         name = self._xact_name()
         self.new_transaction(name)
-        self.add_input(name, amount, fa_from)
-        self.add_output(name, amount, fa_to)
-        self.add_fee(name, fa_from)
+        self.add_input(name, amount, fct_from)
+        self.add_output(name, amount, fct_to)
+        self.add_fee(name, fct_from)
         self.sign_transaction(name)
         call = self.compose_transaction(name)
         return factomd.factoid_submit(call['params']['transaction'])
