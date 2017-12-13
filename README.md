@@ -88,7 +88,7 @@ First let's query the balance in both of our fct addresses:
 {'balance': 0}
 ```
 
-The wallet clients provides a shorcut method `fct_to_fct()` which performs all the API calls needed to submit a simple fct to fct transaction. This includes adding inputs and outputs, calculating the fee, building the signed transaction, and submitting it to the network.
+The wallet client provides a shorcut method `fct_to_fct()` which performs all the API calls needed to submit a simple fct to fct transaction. This includes adding inputs and outputs, calculating the fee, building the signed transaction, and submitting it to the network.
 
 ```python
 >>> walletd.fct_to_fct(factomd, 50000, fct_to=fct_address2, fct_from=fct_address1)
@@ -97,8 +97,104 @@ The wallet clients provides a shorcut method `fct_to_fct()` which performs all t
 
 The server reports the transaction was submitted and if we wait a few seconds we can see the results:
 
-```
+```python
 >>> factomd.factoid_balance(fct_address2)
 {'balance': 50000}
 ```
+
+### Converting factoids to entry credits
+
+Our new entry credit address should have a balance of zero:
+
+```python
+>>> factomd.entry_credit_balance(ec_address)
+{'balance': 0}
+```
+
+First, we need to ask for the conversion rate:
+
+```python
+>>> factomd.entry_credit_rate()
+{'rate': 1000}
+```
+
+This tells us we'll need to burn 1000 factoids in exchange for 1 entry credit, so let's purchase 50 entry credits for 50000 factoids. Similar to `fct_to_fct()`, the wallet client also provides a `fct_to_ec()` shortcut for building and submitting simple fct conversion transactions.
+
+```python
+>>> walletd.fct_to_ec(factomd, 50000, fct_address=fct_address1, ec_address=ec_address)
+{'message': 'Successfully submitted the transaction', 'txid': 'd70b14ce05a21dbf772d1894383694b4537e17454915fc42dc20f02c1e0e2df2'}
+```
+
+And if we query our entry credit balance we see the conversion has happened:
+
+```python
+>>> factomd.entry_credit_balance(ec_address)
+{'balance': 50}
+```
+
+### Writing chains and entries
+
+The real meat and potatoes is the ability to easily read from and write data to the blockchain. Let's write some test data. The wallet client provides a `new_chain()` shortcut method that handles the API calls and encoding needed for creating a new chain. You could also build the transaction manually if you'd like more control over each step, but for most cases this is going to be easier.
+
+```python
+>>> walletd.new_chain(factomd, ['random', 'chain', 'id'], 'chain_content', ec_address=ec_address)
+{'message': 'Entry Reveal Success', 'entryhash': 'f9662a4675f4bb6566337eafd8237ab9fd2ba396947dadeb677c0526d367a5ce', 'chainid': 'da2ffed0ae7b33acc718089edc0f1d001289857cc27a49b6bc4dd22fac971495'}
+```
+
+If we wait a few minutes and search for the chain ID in the exlorer we can see our initial entry:
+
+![Our new chain](screenshots/chain.png "Our new chain")
+
+Now let's add another entry to the same chain:
+
+```python
+>>> chain_id = 'da2ffed0ae7b33acc718089edc0f1d001289857cc27a49b6bc4dd22fac971495'
+>>> walletd.new_entry(factomd, chain_id, ['random', 'entry', 'id'], 'entry_content', ec_address=ec_address)
+{'message': 'Entry Reveal Success', 'entryhash': '96f0472c9ec8a76c861fb4df37beb742938f41bbe492dc04893337bf387b83c5', 'chainid': 'da2ffed0ae7b33acc718089edc0f1d001289857cc27a49b6bc4dd22fac971495'}
+```
+
+You should see the new entry appear shortly.
+
+### Reading entries
+
+It's likely the entries in your chain are related, so you'll want to scan the entire chain in order to verify its integrity. The factomd client provides a `read_chain()` method which iterates over all entry-containing blocks and returns a list of entries in reverse order.
+
+```python
+>>> chain_id = 'da2ffed0ae7b33acc718089edc0f1d001289857cc27a49b6bc4dd22fac971495'
+>>> factomd.read_chain(chain_id)
+[{'chainid': 'da2ffed0ae7b33acc718089edc0f1d001289857cc27a49b6bc4dd22fac971495', 'extids': ['random', 'entry', 'id'], 'content': 'entry_content'}, {'chainid': 'da2ffed0ae7b33acc718089edc0f1d001289857cc27a49b6bc4dd22fac971495', 'extids': ['random', 'chain', 'id'], 'content': 'chain_content'}]
+```
+
+You can see the two entries we created earlier.
+
+### Error handling
+
+When things go badly, API methods will raise a `factom.exceptions.FactomAPIError` with details about the error.
+
+```python
+>>> walletd.new_chain(factomd, ['random', 'chain', 'id'], 'chain_content', ec_address=ec_address)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/src/factom/client.py", line 196, in new_chain
+    'ecpub': ec_address or self.ec_address
+  File "/src/factom/client.py", line 56, in _request
+    handle_error_response(resp)
+  File "/src/factom/exceptions.py", line 18, in handle_error_response
+    raise codes[code](message=message, code=code, data=data, response=resp)
+factom.exceptions.InvalidParams: -32602: Invalid params
+```
+
+More data about the error is attached to the exception instance:
+
+```python
+>>> try:
+...     walletd.new_chain(factomd, ['random', 'chain', 'id'], 'chain_content', ec_address=ec_address)
+... except FactomAPIError as e:
+...     print(e.data)
+... 
+Chain da2ffed0ae7b33acc718089edc0f1d001289857cc27a49b6bc4dd22fac971495 already exists
+```
+
+If you'd like to catch more specific errors, there are exception subclasses for the different error codes returned by the APIs. See [factom/exceptions.py](factom/exceptions.py) for a list.
+
 
