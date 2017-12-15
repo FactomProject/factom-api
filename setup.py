@@ -31,7 +31,7 @@ setup(
     author="Ben Homnick",
     author_email="bhomnick@gmail.com",
     name="factom-api",
-    version='0.1.0',
+    version='0.1.1',
     description="Python client library for the Factom API",
     long_description=long_description,
     license='MIT License',
@@ -43,5 +43,5 @@ setup(
         'requests>=2.18.4',
     ],
     url = 'https://github.com/bhomnick/factom-api',
-    download_url = 'https://github.com/bhomnick/factom-api/tarball/0.1.0',
+    download_url = 'https://github.com/bhomnick/factom-api/tarball/0.1.1',
 )
