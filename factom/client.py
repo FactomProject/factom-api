@@ -18,6 +18,23 @@ class BaseAPI(object):
 
     def __init__(self, ec_address=None, fct_address=None, host=None,
                  version='v2', username=None, password=None, certfile=None):
+        """
+        Instantiate a new API client.
+
+        Args:
+            ec_address (str): A default entry credit address to use for
+                transactions. Credits will be spent from this address with the
+                exception of the `fct_to_ec()` shortcut.
+            fa_address (str): A default factoid address to use for
+                transactions. Factoids will be spent from this address.
+            host (str): Hostname, including http(s)://, of the factomd or
+                factom-walletd instance to query.
+            version (str): API version to use. This should remain 'v2'.
+            username (str): RPC username for protected APIs.
+            password (str): RPC password for protected APIs.
+            certfile (str): Path to certificate file to verify for TLS
+                connections (mostly untested).
+        """
         self.ec_address = ec_address
         self.fct_address = fct_address
         self.version = version
@@ -117,6 +134,16 @@ class Factomd(BaseAPI):
     # Convenience methods
 
     def read_chain(self, chain_id):
+        """
+        Shortcut method to read an entire chain.
+
+        Args:
+            chain_id (str): Chain ID to read.
+
+        Returns:
+            list[dict]: A list of entry dictionaries in reverse
+                chronologial order.
+        """
         entries = []
         keymr = self.chain_head(chain_id)['chainhead']
         while keymr != NULL_BLOCK:
@@ -186,6 +213,20 @@ class FactomWalletd(BaseAPI):
     # Convenience methods
 
     def new_chain(self, factomd, ext_ids, content, ec_address=None):
+        """
+        Shortcut method to create a new chain and initial entry.
+
+        Args:
+            factomd (Factomd): The `Factomd` instance where the creation
+                message will be submitted.
+            ext_ids (list[str]): A list of external IDs, unencoded.
+            content (str): Entry content, unencoded.
+            ec_address (str): Entry credit address to pay with. If not
+                provided `self.ec_address` will be used.
+
+        Returns:
+            dict: API result from the final `reveal_chain()` call.
+        """
         calls = self._request('compose-chain', {
             'chain': {
                 'firstentry': {
@@ -200,6 +241,21 @@ class FactomWalletd(BaseAPI):
         return factomd.reveal_chain(calls['reveal']['params']['entry'])
 
     def new_entry(self, factomd, chain_id, ext_ids, content, ec_address=None):
+        """
+        Shortcut method to create a new entry.
+
+        Args:
+            factomd (Factomd): The `Factomd` instance where the creation
+                message will be submitted.
+            chain_id (str): Chain ID where entry will be appended.
+            ext_ids (list[str]): A list of external IDs, unencoded.
+            content (str): Entry content, unencoded.
+            ec_address (str): Entry credit address to pay with. If not
+                provided `self.ec_address` will be used.
+
+        Returns:
+            dict: API result from the final `reveal_chain()` call.
+        """
         calls = self._request('compose-entry', {
             'entry': {
                 'chainid': chain_id,
@@ -213,6 +269,22 @@ class FactomWalletd(BaseAPI):
         return factomd.reveal_entry(calls['reveal']['params']['entry'])
 
     def fct_to_ec(self, factomd, amount, fct_address=None, ec_address=None):
+        """
+        Shortcut method to create a factoid to entry credit transaction.
+
+        factomd (Factomd): The `Factomd` instance where the signed
+            transaction will be submitted.
+        amount (int): Amount of fct to submit for conversion. You'll likely
+            want to first query the exchange rate via
+            `Factomd.entry_credit_rate()`.
+        fct_address (str): Factoid address to pay with. If not provided
+            `self.fct_address` will be used.
+        ec_address (str): Entry credit address to receive credits. If not
+            provided `self.ec_address` will be used.
+
+        Returns:
+            dict: API result from the final `factoid_submit()` call.
+        """
         name = self._xact_name()
         self.new_transaction(name)
         self.add_input(name, amount, fct_address)
@@ -223,6 +295,21 @@ class FactomWalletd(BaseAPI):
         return factomd.factoid_submit(call['params']['transaction'])
 
     def fct_to_fct(self, factomd, amount, fct_to, fct_from=None):
+        """
+        Shortcut method to create a factoid to factoid.
+
+        factomd (Factomd): The `Factomd` instance where the signed
+            transaction will be submitted.
+        amount (int): Amount of fct to submit for conversion. You'll likely
+            want to first query the exchange rate via
+            `Factomd.entry_credit_rate()`.
+        fct_to (str): Output factoid address.
+        fct_from (str): Input factoid address. If not provided
+            `self.fct_address` will be used.
+
+        Returns:
+            dict: API result from the final `factoid_submit()` call.
+        """
         name = self._xact_name()
         self.new_transaction(name)
         self.add_input(name, amount, fct_from)
