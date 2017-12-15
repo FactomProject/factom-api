@@ -42,6 +42,6 @@ setup(
     install_requires=[
         'requests>=2.18.4',
     ],
-    url = 'https://github.com/bhomnick/factom-api',
-    download_url = 'https://github.com/bhomnick/factom-api/tarball/0.1.1',
+    url='https://github.com/bhomnick/factom-api',
+    download_url='https://github.com/bhomnick/factom-api/tarball/0.1.1',
 )
