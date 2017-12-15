@@ -141,7 +141,7 @@ The real meat and potatoes is the ability to easily read from and write data to 
 {'message': 'Entry Reveal Success', 'entryhash': 'f9662a4675f4bb6566337eafd8237ab9fd2ba396947dadeb677c0526d367a5ce', 'chainid': 'da2ffed0ae7b33acc718089edc0f1d001289857cc27a49b6bc4dd22fac971495'}
 ```
 
-If we wait a few minutes and search for the chain ID in the exlorer we can see our initial entry:
+If we wait a few minutes and search for the chain ID in the explorer we can see our initial entry:
 
 ![Our new chain](screenshots/chain.png "Our new chain")
 
@@ -157,7 +157,7 @@ You should see the new entry appear shortly.
 
 ### Reading entries
 
-It's likely the entries in your chain are related, so you'll want to scan the entire chain in order to verify its integrity. The factomd client provides a `read_chain()` method which iterates over all entry-containing blocks and returns a list of entries in reverse order.
+If the entries in your chain reference each other, you may want to scan the entire chain in order to verify its integrity. The factomd client provides a `read_chain()` method which iterates over all entry-containing blocks and returns a list of entries in reverse order.
 
 ```python
 >>> chain_id = 'da2ffed0ae7b33acc718089edc0f1d001289857cc27a49b6bc4dd22fac971495'
