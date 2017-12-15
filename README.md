@@ -1,5 +1,7 @@
 # factom-api
 
+[![Build Status](https://travis-ci.org/bhomnick/factom-api.svg?branch=master)](https://travis-ci.org/bhomnick/factom-api)
+
 This library provides Python clients for interacting with the factomd and factom-walletd APIs. While not all API methods have been implemented yet, you'll find most of what you need to build a working application are available, along with shortcut methods for accomplishing common tasks involving multiple calls between the wallet and daemon.
 
 The API client is fully tested under Python 2.7, 3.4, 3.5, and 3.6, and likely works with other versions as well.
