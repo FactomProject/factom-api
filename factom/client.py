@@ -80,7 +80,7 @@ class Factomd(BaseAPI):
 
     def admin_block_by_height(self, height):
         """
-        Retrieve administrative blocks for any given height.
+        Retrieves administrative blocks for any given height.
 
         The admin block contains data related to the identities within the factom system and the decisions the system
         makes as it builds the block chain. The ‘abentries’ (admin block entries) in the JSON response can be of
@@ -136,9 +136,7 @@ class Factomd(BaseAPI):
         necessary message.
         roundtimeout: returns the number of seconds between rounds of an election during a fault.
         """
-        return self._request('current-minute', {
-            'method': current_minute
-        })
+        return self._request('current-minute')
 
     def directory_block_by_height(self, height):
         """
