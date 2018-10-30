@@ -121,7 +121,7 @@ class Factomd(BaseAPI):
             'message': message
         })
 
-    def current_minute(self, current_minute):
+    def current_minute(self):
         """
         The current-minute API call returns:
         leaderheight: returns the current block height.
