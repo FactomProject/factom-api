@@ -78,32 +78,24 @@ class BaseAPI(object):
 class Factomd(BaseAPI):
     host = 'http://localhost:8088'
 
-    def admin_block_by_height(self, height):
-        """
-        Retrieves administrative blocks for any given height.
-
-        The admin block contains data related to the identities within the factom system and the decisions the system
-        makes as it builds the block chain. The ‘abentries’ (admin block entries) in the JSON response can be of
-        various types, the most common is a directory block signature (DBSig). A majority of the federated servers
-        sign every directory block, meaning every block after m5 will contain 5 DBSigs in each admin block.
-        """
-        return self._request('ablock-by-height', {
-            'height': height
-        })
-
-    def ack(self, hash, chainid):
-        return self._request('ack', {
-            'hash': hash,
-            'chainid': chainid,
-            'fulltransaction': ""
-        })
-
     def admin_block(self, keymr):
         """
         Retrieve a specified admin block given its merkle root key.
         """
         return self._request('admin-block', {
             'keymr': keymr
+        })
+
+    def admin_block_by_height(self, height):
+        """
+        Retrieves administrative blocks for any given height.
+        The admin block contains data related to the identities within the factom system and the decisions the system
+        makes as it builds the block chain. The abentries (admin block entries) in the JSON response can be of
+        various types, the most common is a directory block signature (DBSig). A majority of the federated servers
+        sign every directory block, meaning every block after m5 will contain 5 DBSigs in each admin block.
+        """
+        return self._request('ablock-by-height', {
+            'height': height
         })
 
     def chain_head(self, chain_id):
@@ -151,7 +143,7 @@ class Factomd(BaseAPI):
         Every directory block has a KeyMR (Key Merkle Root), which can be used to retrieve it.
         The response will contain information that can be used to navigate through all transactions
         (entry and factoid) within that block. The header of the directory block will contain
-        information regarding the previous directory block’s keyMR, directory block height, and the timestamp.
+        information regarding the previous directory block keyMR, directory block height, and the timestamp.
         """
         return self._request('directory-block', {
             'keymr': keymr
@@ -345,7 +337,7 @@ class Factomd(BaseAPI):
 
     def transaction(self, hash):
         """
-        Retrieve details of a factoid transaction using a transaction’s hash (or corresponding transaction id).
+        Retrieve details of a factoid transaction using a transaction hash (or corresponding transaction id).
         """
         return self._request('transaction', {
             'hash': hash
@@ -377,106 +369,6 @@ class Factomd(BaseAPI):
                 })
             keymr = block['header']['prevkeymr']
         return entries
-
-    # Debug API
-
-    def audit_servers(self):
-        """
-        Get a list of the current network audit servers along with their information.
-
-        Returns:
-            list[dict]: A list of audit servers connected to the network.
-        """
-        return self._request('audit-servers')
-
-    def authorities(self):
-        """
-        Get the process list known to the current factomd instance.
-
-        Returns:
-            list[dict]: A list of authority servers in the management chain
-        """
-        return self._request('authorities')
-
-    def configuration(self):
-        """
-        Get the current configuration state from factomd.
-        """
-        return self._request('configuration')
-
-    def delay(self):
-        """
-        Get the current msg delay time for network testing.
-        """
-        return self._request('delay')
-
-    def drop_rate(self):
-        """
-        Get the current package drop rate for network testing.
-        """
-        return self._request('drop-rate')
-
-    def federated_servers(self):
-        """
-        Get a list of the current network federated servers along with their information.
-
-        Returns:
-             list[dict]: A list of federated servers connected to the network.
-        """
-        return self._request('federated-servers')
-
-    def holding_queue(self):
-        """
-        Show current holding messages in the queue.
-        """
-        return self._request('holding-queue')
-
-    def messages(self):
-        """
-        Get a list of messages from the message journal (must run factomd with -journaling=true).
-        """
-        return self._request('messages')
-
-    def network_info(self):
-        """
-        Get information on the current network factomd is connected to (TEST, MAIN, etc).
-        """
-        return self._request('network-info')
-
-    def predictive_fer(self):
-        """
-        Get the predicted future entry credit rate.
-        """
-        return self._request('predictive_fer')
-
-    def process_list(self):
-        return self._request('process-list')
-
-    def reload_configuration(self):
-        """
-        Causes factomd to re-read the configuration from the config file.
-        Note: This may cause consensus problems and could be impractical even in testing.
-        """
-        return self._request('reload-configuration')
-
-    def set_delay(self, delay):
-        return self._request('set-delay', {
-            'Delay': delay
-        })
-
-    def set_drop_rate(self, droprate):
-        """
-        Change the network drop rate for testing.
-        """
-        return self._request('set-drop-rate',{
-            'DropRate': droprate
-        })
-
-    def summary(self):
-        """
-        Get the nodes summary string.
-        """
-        return self._request('summary')
 
 class FactomWalletd(BaseAPI):
     host = 'http://localhost:8089'
@@ -565,8 +457,7 @@ class FactomWalletd(BaseAPI):
 
     def import_koinify(self, words):
         """
-        Import a Koinify crowd sale address into the wallet. In our examples we used the word “yellow” twelve times,
-        note that in your case the master passphrase will be different.
+        Import a Koinify crowd sale address into the wallet.
         """
         return self._request('import-koinify', {
             'words': words
@@ -613,7 +504,7 @@ class FactomWalletd(BaseAPI):
         """
         This will retrieve a transaction by the given TxID. This call is the fastest way to retrieve a transaction,
         but it will not display the height of the transaction. If a height is in the response, it will be 0.
-        To retrieve the height of a transaction, use the 'By Address’ method
+        To retrieve the height of a transaction, use the By Address method
         """
         return self._request('transactions', {
             'txid': txid
@@ -637,17 +528,17 @@ class FactomWalletd(BaseAPI):
         """
         The wallet-balances API is used to query the acknowledged and saved balances for all addresses in the
         currently running factom-walletd. The saved balance is the last saved to the database and the acknowledged or
-        “ack” balance is the balance after processing any in-flight transactions known to the Factom node responding to
+        ack balance is the balance after processing any in-flight transactions known to the Factom node responding to
         the API call. The factoid address balance will be returned in factoshis (a factoshi is 10^8 factoids) not
         factoids(FCT) and the entry credit balance will be returned in entry credits.
 
         If walletd and factomd are not both running this call will not work.
 
         If factomd is not loaded up all the way to last saved block it will return:
-        “result”:{“Factomd Error”:“Factomd is not fully booted, please wait and try again.”}
+        result:{Factomd Error:Factomd is not fully booted, please wait and try again.}
 
         If an address is not in the correct format the call will return:
-        “result”:{“Factomd Error”:”There was an error decoding an address”}
+        result:{Factomd Error:There was an error decoding an address}
 
         If an address does not have a public and private address known to the wallet it will not be included in the balance.
 
