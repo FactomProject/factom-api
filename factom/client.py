@@ -11,7 +11,7 @@ from .session import FactomAPISession
 from .utils import hex, unhex
 
 
-NULL_BLOCK = '0000000000000000000000000000000000000000000000000000000000000000'  # noqa
+NULL_BLOCK = '0000000000000000000000000000000000000000000000000000000000000000'
 
 
 class BaseAPI(object):
@@ -89,10 +89,13 @@ class Factomd(BaseAPI):
     def admin_block_by_height(self, height):
         """
         Retrieves administrative blocks for any given height.
-        The admin block contains data related to the identities within the factom system and the decisions the system
-        makes as it builds the block chain. The abentries (admin block entries) in the JSON response can be of
-        various types, the most common is a directory block signature (DBSig). A majority of the federated servers
-        sign every directory block, meaning every block after m5 will contain 5 DBSigs in each admin block.
+        The admin block contains data related to the identities within the
+        factom system and the decisions the system makes as it builds the
+        blockchain. The abentries(admin block entries) in the JSON response
+        can be of various types, the most common is a directory block
+        signature(DBSig). A majority of the federated servers sign every
+        directory block, meaning every block after m5 will contain 5 DBSigs in
+        each admin block.
         """
         return self._request('ablock-by-height', {
             'height': height
@@ -124,9 +127,10 @@ class Factomd(BaseAPI):
         currenttime: returns the current nodes understanding of current time.
         directoryblockinseconds: returns the number of seconds per block.
         stalldetected: returns if factomd thinks it has stalled.
-        faulttimeout: returns the number of seconds before leader node is faulted for failing to provide a
-        necessary message.
-        roundtimeout: returns the number of seconds between rounds of an election during a fault.
+        faulttimeout: returns the number of seconds before leader node is fault
+        ed for failing to provide a necessary message.
+        roundtimeout: returns the number of seconds between rounds of an
+        election during a fault.
         """
         return self._request('current-minute')
 
@@ -140,10 +144,12 @@ class Factomd(BaseAPI):
 
     def directory_block_by_keymr(self, keymr):
         """
-        Every directory block has a KeyMR (Key Merkle Root), which can be used to retrieve it.
-        The response will contain information that can be used to navigate through all transactions
-        (entry and factoid) within that block. The header of the directory block will contain
-        information regarding the previous directory block keyMR, directory block height, and the timestamp.
+        Every directory block has a KeyMR (Key Merkle Root), which can be used
+        to retrieve it. The response will contain information that can be used
+        to navigate through all transactions (entry and factoid) within that
+        block. The header of the directory block will contain information
+        regarding the previous directory block keyMR, directory block height,
+        and the timestamp.
         """
         return self._request('directory-block', {
             'keymr': keymr
@@ -151,9 +157,10 @@ class Factomd(BaseAPI):
 
     def directory_block_head(self):
         """
-        The directory block head is the last known directory block by factom, or in other words,
-        the most recently recorded block. This can be used to grab the latest block and the information
-        required to traverse the entire blockchain.
+        The directory block head is the last known directory block by factom,
+        or in other words, the most recently recorded block. This can be used
+        to grab the latest block and the information required to traverse the
+        entire blockchain.
         """
         return self._request('directory-block-head')
 
@@ -167,7 +174,8 @@ class Factomd(BaseAPI):
 
     def entry_block(self, keymr):
         """
-        Retrieve a specified entry block given its merkle root key. The entry block contains 0 to many entries
+        Retrieve a specified entry block given its merkle root key. The entry
+        block contains 0 to many entries
         """
         return self._request('entry-block', {
             'keymr': keymr
@@ -183,7 +191,8 @@ class Factomd(BaseAPI):
 
     def entry_credit_block(self, keymr):
         """
-        Retrieve a specified entrycredit block given its merkle root key. The numbers are minute markers.
+        Retrieve a specified entrycredit block given its merkle root key. The
+        numbers are minute markers.
         """
         return self._request('entrycredit-block', {
             'keymr': keymr
@@ -200,8 +209,10 @@ class Factomd(BaseAPI):
 
     def entry_credit_rate(self):
         """
-        Returns the number of Factoshis (Factoids *10^-8) that purchase a single Entry Credit.
-        The minimum factoid fees are also determined by this rate, along with how complex the factoid transaction is.
+        Returns the number of Factoshis (Factoids *10^-8) that purchase a
+        single Entry Credit.
+        The minimum factoid fees are also determined by this rate, along with
+        how complex the factoid transaction is.
         """
         return self._request('entry-credit-rate')
 
@@ -216,7 +227,8 @@ class Factomd(BaseAPI):
 
     def factoid_block_by_height(self, height):
         """
-        Retrieve the factoid block for any given height. These blocks contain factoid transaction information.
+        Retrieve the factoid block for any given height. These blocks contain
+        factoid transaction information.
         """
         return self._request('fblock-by-height', {
             'height': height
@@ -232,8 +244,9 @@ class Factomd(BaseAPI):
 
     def factoid_submit(self, transaction):
         """
-        The factoid-submit API takes a specifically formatted message encoded in hex that includes signatures.
-        If you have a factom-walletd instance running, you can construct this factoid-submit API call with
+        The factoid-submit API takes a specifically formatted message encoded
+        in hex that includes signatures.If you have a factom-walletd instance
+        running, you can construct this factoid-submit API call with
         compose-transaction which takes easier to construct arguments.
         """
         return self._request('factoid-submit', {
@@ -242,25 +255,33 @@ class Factomd(BaseAPI):
 
     def heights(self):
         """
-        Returns various heights that allows you to view the state of the blockchain.
-        The heights returned provide a lot of information regarding the state of factomd,
-        but not all are needed by most applications. The heights also indicate the most recent block,
-        which could not be complete, and still being built. The heights mean as follows:
+        Returns various heights that allows you to view the state of the
+        blockchain.
+        The heights returned provide a lot of information regarding the state
+        of factomd, but not all are needed by most applications. The heights
+        also indicate the most recent block, which could not be complete, and
+        still being built. The heights mean as follows:
 
-        directoryblockheight : The current directory block height of the local factomd node.
-        leaderheight : The current block being worked on by the leaders in the network. This block is not yet complete,
-        but all transactions submitted will go into this block (depending on network conditions, the transaction may be
-        delayed into the next block)
-        entryblockheight : The height at which the factomd node has all the entry blocks. Directory blocks are obtained
-        first, entry blocks could be lagging behind the directory block when syncing.
-        entryheight : The height at which the local factomd node has all the entries. If you added entries at a block
-        height above this, they will not be able to be retrieved by the local factomd until it syncs further.
+        directoryblockheight : The current directory block height of the local
+        factomd node.
+        leaderheight : The current block being worked on by the leaders in the
+        network. This block is not yet complete, but all transactions
+        submitted will go into this block (depending on network conditions,
+        the transaction may be delayed into the next block)
+        entryblockheight : The height at which the factomd node has all the
+        entry blocks. Directory blocks are obtained first, entry blocks could
+        be lagging behind the directory block when syncing.
+        entryheight : The height at which the local factomd node has all the
+        entries. If you added entries at a block height above this, they will
+        not be able to be retrieved by the local factomd until it syncs
+        further.
         """
         return self._request('heights')
 
     def multiple_entry_credit_balances(self, ec_address_list):
         """
-         Used to query the acknowledged and saved balances for a list of entry credit addresses.
+         Used to query the acknowledged and saved balances for a list of entry
+         credit addresses.
 
          Args:
             ec_address_list(list): A list of entry credit addresses
@@ -271,8 +292,9 @@ class Factomd(BaseAPI):
 
     def multiple_factoid_balances(self, fct_address_list):
         """
-        Used to query the acknowledged and saved balances in factoshis (a factoshi is 10^8 factoids) not factoids(FCT)
-        for a list of FCT addresses.
+        Used to query the acknowledged and saved balances in factoshis (a
+        factoshi is 10^8 factoids) not factoids(FCT) for a list of FCT
+        addresses.
         Args:
             fct_address_list(list): A list of factoid addresses
         """
@@ -282,26 +304,30 @@ class Factomd(BaseAPI):
 
     def pending_entries(self):
         """
-        Returns an array of the entries that have been submitted but have not been recorded into the blockchain.
+        Returns an array of the entries that have been submitted but have not
+        been recorded into the blockchain.
         """
         return self._request('pending-entries')
 
     def pending_transactions(self):
         """
-        Returns an array of factoid transactions that have not yet been recorded in the blockchain,
+        Returns an array of factoid transactions that have not yet been
+        recorded in the blockchain,
         but are known to the system.
         """
         return self._request('pending-transactions')
 
     def properties(self):
         """
-        Retrieve current properties of the Factom system, including the software and the API versions.
+        Retrieve current properties of the Factom system, including the
+        software and the API versions.
         """
         return self._request('properties')
 
     def raw_data(self, hash):
         """
-        Retrieve an entry or transaction in raw format, the data is a hex encoded string.
+        Retrieve an entry or transaction in raw format, the data is a hex
+        encoded string.
         """
         return self._request('raw-data', {
             'hash': hash
@@ -309,8 +335,9 @@ class Factomd(BaseAPI):
 
     def receipt(self, hash):
         """
-        Retrieve a receipt providing cryptographically verifiable proof that information was recorded
-        in the factom blockchain and that this was subsequently anchored in the bitcoin blockchain.
+        Retrieve a receipt providing cryptographically verifiable proof that
+        information was recorded in the factom blockchain and that this was
+        subsequently anchored in the bitcoin blockchain.
         """
         return self._request('receipt', {
             'hash': hash
@@ -337,7 +364,8 @@ class Factomd(BaseAPI):
 
     def transaction(self, hash):
         """
-        Retrieve details of a factoid transaction using a transaction hash (or corresponding transaction id).
+        Retrieve details of a factoid transaction using a transaction hash (or
+        corresponding transaction id).
         """
         return self._request('transaction', {
             'hash': hash
@@ -369,6 +397,7 @@ class Factomd(BaseAPI):
                 })
             keymr = block['header']['prevkeymr']
         return entries
+
 
 class FactomWalletd(BaseAPI):
     host = 'http://localhost:8089'
@@ -402,7 +431,8 @@ class FactomWalletd(BaseAPI):
 
     def address(self, address):
         """
-        Retrieve the public and private parts of a Factoid or Entry Credit address stored in the wallet.
+        Retrieve the public and private parts of a Factoid or Entry Credit
+        address stored in the wallet.
         """
         return self._request('address', {
             'address': address
@@ -410,7 +440,8 @@ class FactomWalletd(BaseAPI):
 
     def all_addresses(self):
         """
-        Retrieve all of the Factoid and Entry Credit addresses stored in the wallet.
+        Retrieve all of the Factoid and Entry Credit addresses stored in the
+        wallet.
         """
         return self._request('all-addresses')
 
@@ -421,7 +452,8 @@ class FactomWalletd(BaseAPI):
 
     def delete_transaction(self, name):
         """
-        Deletes a working transaction in the wallet. The full transaction will be returned, and then deleted.
+        Deletes a working transaction in the wallet. The full transaction will
+        be returned, and then deleted.
         """
         return self._request('delete-transaction', {
             'tx-name': name
@@ -441,7 +473,8 @@ class FactomWalletd(BaseAPI):
 
     def get_height(self):
         """
-        Get the current hight of blocks that have been cached by the wallet while syncing.
+        Get the current hight of blocks that have been cached by the wallet
+        while syncing.
         """
         return self._request('get-height')
 
@@ -452,7 +485,7 @@ class FactomWalletd(BaseAPI):
         return self._request('import-addresses', {
             'addresses': [
                 {'secret': secret_key
-            }]
+                 }]
         })
 
     def import_koinify(self, words):
@@ -470,7 +503,8 @@ class FactomWalletd(BaseAPI):
 
     def properties(self):
         """
-        Retrieve current properties of factom-walletd, including the wallet and wallet API versions.
+        Retrieve current properties of factom-walletd, including the wallet
+        and wallet API versions.
         """
         return self._request('properties')
 
@@ -487,7 +521,8 @@ class FactomWalletd(BaseAPI):
 
     def temporary_transactions(self):
         """
-        Lists all the current working transactions in the wallet. These are transactions that are not yet sent.
+        Lists all the current working transactions in the wallet. These are
+        transactions that are not yet sent.
         """
         return self._request('tmp-transactions')
 
@@ -502,9 +537,10 @@ class FactomWalletd(BaseAPI):
 
     def transactions_by_txid(self, txid):
         """
-        This will retrieve a transaction by the given TxID. This call is the fastest way to retrieve a transaction,
-        but it will not display the height of the transaction. If a height is in the response, it will be 0.
-        To retrieve the height of a transaction, use the By Address method
+        This will retrieve a transaction by the given TxID. This call is the
+        fastest way to retrieve a transaction, but it will not display the
+        height of the transaction. If a height is in the response, it will be
+        0. To retrieve the height of a transaction, use the By Address method.
         """
         return self._request('transactions', {
             'txid': txid
@@ -520,37 +556,42 @@ class FactomWalletd(BaseAPI):
 
     def wallet_backup(self):
         """
-        Return the wallet seed and all addresses in the wallet for backup and offline storage.
+        Return the wallet seed and all addresses in the wallet for backup and
+        offline storage.
         """
         return self._request('wallet-backup')
 
     def wallet_balances(self):
         """
-        The wallet-balances API is used to query the acknowledged and saved balances for all addresses in the
-        currently running factom-walletd. The saved balance is the last saved to the database and the acknowledged or
-        ack balance is the balance after processing any in-flight transactions known to the Factom node responding to
-        the API call. The factoid address balance will be returned in factoshis (a factoshi is 10^8 factoids) not
-        factoids(FCT) and the entry credit balance will be returned in entry credits.
+        The wallet-balances API is used to query the acknowledged and saved
+        balances for all addresses in the currently running factom-walletd.
+        The saved balance is the last saved to the database and the
+        acknowledged or ack balance is the balance after processing any
+        in-flight transactions known to the Factom node responding to the API
+        call. The factoid address balance will be returned in factoshis (a
+        factoshi is 10^8 factoids) not factoids(FCT) and the entry credit
+        balance will be returned in entry credits.
 
         If walletd and factomd are not both running this call will not work.
 
-        If factomd is not loaded up all the way to last saved block it will return:
-        result:{Factomd Error:Factomd is not fully booted, please wait and try again.}
+        If factomd is not loaded up all the way to last saved block it will
+        return:
+        result:{Factomd Error:Factomd is not fully booted, please wait and try
+        again.}
 
         If an address is not in the correct format the call will return:
         result:{Factomd Error:There was an error decoding an address}
 
-        If an address does not have a public and private address known to the wallet it will not be included in the balance.
+        If an address does not have a public and private address known to the
+        wallet it will not be included in the balance.
 
-        "fctaccountbalances" are the total of all factoid account balances returned in factoshis.
+        "fctaccountbalances" are the total of all factoid account balances
+        returned in factoshis.
 
-        "ecaccountbalances" are the total of all entry credit account balances returned in entry credits.
+        "ecaccountbalances" are the total of all entry credit account balances
+        returned in entry credits.
         """
         return self._request('wallet-balances')
-
-
-
-    # Convenience methods
 
     def new_chain(self, factomd, ext_ids, content, ec_address=None):
         """
