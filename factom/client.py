@@ -25,7 +25,7 @@ class BaseAPI(object):
             ec_address (str): A default entry credit address to use for
                 transactions. Credits will be spent from this address
                 with the exception of the `fct_to_ec()` shortcut.
-            fa_address (str): A default factoid address to use for
+            fct_address (str): A default factoid address to use for
                 transactions. Factoids will be spent from this address.
             host (str): Hostname, including http(s)://, of the factomd
                 or factom-walletd instance to query.
