@@ -8,7 +8,6 @@ except ImportError:
 
 from .exceptions import handle_error_response
 from .session import FactomAPISession
-from .utils import hex, unhex
 
 
 NULL_BLOCK = '0000000000000000000000000000000000000000000000000000000000000000'
@@ -174,9 +173,10 @@ class Factomd(BaseAPI):
         """
         Get an Entry from factomd specified by the Entry Hash.
         """
-        return self._request('entry', {
-            'hash': hash
-        })
+        resp = self._request('entry', { 'hash': hash })
+        resp['extids'] = [bytes.fromhex(x) for x in resp['extids']]
+        resp['content'] = bytes.fromhex(resp['content'])
+        return resp
 
     def entry_block(self, keymr):
         """
@@ -381,12 +381,14 @@ class Factomd(BaseAPI):
 
     # Convenience methods
 
-    def read_chain(self, chain_id):
+    def read_chain(self, chain_id, include_entry_context=False):
         """
         Shortcut method to read an entire chain.
 
         Args:
             chain_id (str): Chain ID to read.
+            include_entry_context (bool): Whether to include extra information like
+                entry hash, timestamp, and block height
 
         Returns:
             list[dict]: A list of entry dictionaries in reverse
@@ -396,13 +398,13 @@ class Factomd(BaseAPI):
         keymr = self.chain_head(chain_id)['chainhead']
         while keymr != NULL_BLOCK:
             block = self.entry_block(keymr)
-            for hash in reversed(block['entrylist']):
-                entry = self.entry(hash['entryhash'])
-                entries.append({
-                    'chainid': entry['chainid'],
-                    'extids': unhex(entry['extids']),
-                    'content': unhex(entry['content']),
-                })
+            for entry_pointer in reversed(block['entrylist']):
+                entry = self.entry(entry_pointer['entryhash'])
+                if include_entry_context:
+                    entry['entryhash'] = entry_pointer['entryhash']
+                    entry['timestamp'] = entry_pointer['timestamp']
+                    entry['dbheight'] = block['header']['dbheight']
+                entries.append(entry)
             keymr = block['header']['prevkeymr']
         return entries
 
@@ -624,7 +626,7 @@ class FactomWalletd(BaseAPI):
         calls = self._request('compose-chain', {
             'chain': {
                 'firstentry': {
-                    'extids': hex(ext_ids),
+                    'extids': [hex(x) for x in ext_ids],
                     'content': hex(content)
                 },
             },
@@ -653,7 +655,7 @@ class FactomWalletd(BaseAPI):
         calls = self._request('compose-entry', {
             'entry': {
                 'chainid': chain_id,
-                'extids': hex(ext_ids),
+                'extids': [hex(x) for x in ext_ids],
                 'content': hex(content)
             },
             'ecpub': ec_address or self.ec_address
