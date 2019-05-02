@@ -100,6 +100,20 @@ class Factomd(BaseAPI):
             'height': height
         })
 
+    def anchors(self, hash: str = None, height: int = None):
+        """
+        Retrieve the set of anchors for a given object hash or directory block height.
+        """
+        if hash is None:
+            assert height is not None, 'No hash provided, height must not be none'
+            assert height >= 0, 'Height must be >= 0'
+            params = {'height': height}
+        else:
+            assert height is None, 'Hash provided, height must be None'
+            params = {'hash': hash}
+
+        return self._request('anchors', params)
+
     def chain_head(self, chain_id):
         return self._request('chain-head', {
             'chainid': chain_id
@@ -341,14 +355,15 @@ class Factomd(BaseAPI):
             'hash': hash
         })
 
-    def receipt(self, hash):
+    def receipt(self, hash, include_raw_entry: bool = False):
         """
         Retrieve a receipt providing cryptographically verifiable proof
         that information was recorded in the factom blockchain and that
         this was subsequently anchored in the bitcoin blockchain.
         """
         return self._request('receipt', {
-            'hash': hash
+            'hash': hash,
+            'include_raw_entry': include_raw_entry,
         })
 
     def reveal_chain(self, entry):
