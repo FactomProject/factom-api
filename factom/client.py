@@ -363,7 +363,7 @@ class Factomd(BaseAPI):
         """
         return self._request('receipt', {
             'hash': hash,
-            'include_raw_entry': include_raw_entry,
+            'includerawentry': include_raw_entry,
         })
 
     def reveal_chain(self, entry):
