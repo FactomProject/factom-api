@@ -15,10 +15,9 @@ CLASSIFIERS = [
     'Intended Audience :: Developers',
     'License :: OSI Approved :: MIT License',
     'Operating System :: OS Independent',
-    'Programming Language :: Python :: 2.7',
-    'Programming Language :: Python :: 3.4',
     'Programming Language :: Python :: 3.5',
     'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
     'Topic :: Internet :: WWW/HTTP',
     'Topic :: Security',
     'Topic :: Security :: Cryptography',
@@ -42,6 +41,5 @@ setup(
     install_requires=[
         'requests>=2.20.0',
     ],
-    url='https://github.com/bhomnick/factom-api',
-    download_url='https://github.com/bhomnick/factom-api/tarball/0.1.1',
+    url='https://github.com/FactomProject/factom-api',
 )
