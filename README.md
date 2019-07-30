@@ -1,40 +1,12 @@
 # factom-api
 
-[![Build Status](https://travis-ci.org/bhomnick/factom-api.svg?branch=master)](https://travis-ci.org/bhomnick/factom-api)
-
 This library provides Python clients for interacting with the factomd and factom-walletd APIs. While not all API methods have been implemented yet, you'll find most of what you need to build a working application are available, along with shortcut methods for accomplishing common tasks involving multiple calls between the wallet and daemon.
 
-The API client is fully tested under Python 2.7, 3.4, 3.5, and 3.6, and likely works with other versions as well.
+Because Python 2 is reaching EOL, this API client (from version 1.0.0 onwards) targets Python 3.5 and higher.
 
 If you're unfamiliar with Factom, I encourage you to [read the documentation](http://docs.factom.com/), especially the [white paper](https://github.com/FactomProject/FactomDocs/blob/master/whitepaper.md). In a nutshell, Factom provides a layer on top of the Bitcoin blockchain making it possible to secure data faster and in larger amounts than the Bitcoin network would allow alone.
 
 ## Getting started
-
-### Setting up the Factom sandbox
-
-First things first. For development I recommend running a local installation of factomd and factom-walletd so you're not wasting credits. This repository includes a docker-compose file that runs a ready-out-of-the-box sandbox environment I've put together. If you're curious you can check out the [factom-docker repository](https://github.com/bhomnick/factom-docker). Make sure you have [docker-compose](https://docs.docker.com/compose/install/) installed, then open a new terminal window and run:
-
-```
-$ docker-compose up factom-sandbox
-```
-
-For demonstration purposes, let's import a wallet address with a bunch of factoids and create a few new addresses. In a new terminal window:
-
-```
-$ docker-compose run factom-sandbox bash
-
-# Import an address containing a large amount of factoids
-root@8cd0d633bd16:/# factom-cli importaddress Fs3E9gV6DXsYzf7Fqx1fVBQPQXV695eP3k5XbmHEZVRLkMdD9qCK
-FA2jK2HcLnRdS94dEcU27rF3meoJfpUcZPSinpb7AwQvPRY6RL1Q
-
-# Create a new entry credit address
-root@8cd0d633bd16:/# factom-cli newecaddress
-EC2jhmCtabeTXGtuLi3AaPzvwSuqksdVsjfxXMXV5gPmipXc4GjC
-
-# Create a new factoid address
-root@8cd0d633bd16:/# factom-cli newfctaddress
-FA3TMQHrCrmLa4F9t442U3Ab3R9sM1gThYMDoygPEVtxrbHtFRtg
-```
 
 ### Installing the API client
 

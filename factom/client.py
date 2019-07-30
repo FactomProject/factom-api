@@ -8,7 +8,6 @@ except ImportError:
 
 from .exceptions import handle_error_response
 from .session import FactomAPISession
-from .utils import hex, unhex
 
 
 NULL_BLOCK = '0000000000000000000000000000000000000000000000000000000000000000'
@@ -101,6 +100,20 @@ class Factomd(BaseAPI):
             'height': height
         })
 
+    def anchors(self, hash: str = None, height: int = None):
+        """
+        Retrieve the set of anchors for a given object hash or directory block height.
+        """
+        if hash is None:
+            assert height is not None, 'No hash provided, height must not be none'
+            assert height >= 0, 'Height must be >= 0'
+            params = {'height': height}
+        else:
+            assert height is None, 'Hash provided, height must be None'
+            params = {'hash': hash}
+
+        return self._request('anchors', params)
+
     def chain_head(self, chain_id):
         return self._request('chain-head', {
             'chainid': chain_id
@@ -174,9 +187,10 @@ class Factomd(BaseAPI):
         """
         Get an Entry from factomd specified by the Entry Hash.
         """
-        return self._request('entry', {
-            'hash': hash
-        })
+        resp = self._request('entry', { 'hash': hash })
+        resp['extids'] = [bytes.fromhex(x) for x in resp['extids']]
+        resp['content'] = bytes.fromhex(resp['content'])
+        return resp
 
     def entry_block(self, keymr):
         """
@@ -341,14 +355,15 @@ class Factomd(BaseAPI):
             'hash': hash
         })
 
-    def receipt(self, hash):
+    def receipt(self, hash, include_raw_entry: bool = False):
         """
         Retrieve a receipt providing cryptographically verifiable proof
         that information was recorded in the factom blockchain and that
         this was subsequently anchored in the bitcoin blockchain.
         """
         return self._request('receipt', {
-            'hash': hash
+            'hash': hash,
+            'includerawentry': include_raw_entry,
         })
 
     def reveal_chain(self, entry):
@@ -381,12 +396,14 @@ class Factomd(BaseAPI):
 
     # Convenience methods
 
-    def read_chain(self, chain_id):
+    def read_chain(self, chain_id, include_entry_context=False):
         """
         Shortcut method to read an entire chain.
 
         Args:
             chain_id (str): Chain ID to read.
+            include_entry_context (bool): Whether to include extra information like
+                entry hash, timestamp, and block height
 
         Returns:
             list[dict]: A list of entry dictionaries in reverse
@@ -396,13 +413,13 @@ class Factomd(BaseAPI):
         keymr = self.chain_head(chain_id)['chainhead']
         while keymr != NULL_BLOCK:
             block = self.entry_block(keymr)
-            for hash in reversed(block['entrylist']):
-                entry = self.entry(hash['entryhash'])
-                entries.append({
-                    'chainid': entry['chainid'],
-                    'extids': unhex(entry['extids']),
-                    'content': unhex(entry['content']),
-                })
+            for entry_pointer in reversed(block['entrylist']):
+                entry = self.entry(entry_pointer['entryhash'])
+                if include_entry_context:
+                    entry['entryhash'] = entry_pointer['entryhash']
+                    entry['timestamp'] = entry_pointer['timestamp']
+                    entry['dbheight'] = block['header']['dbheight']
+                entries.append(entry)
             keymr = block['header']['prevkeymr']
         return entries
 
@@ -517,9 +534,10 @@ class FactomWalletd(BaseAPI):
         """
         return self._request('properties')
 
-    def sign_transaction(self, name):
+    def sign_transaction(self, name, force = False):
         return self._request('sign-transaction', {
-            'tx-name': name
+            'tx-name': name,
+            'force': force,
         })
 
     def sub_fee(self, name, fct_address):
@@ -624,7 +642,7 @@ class FactomWalletd(BaseAPI):
         calls = self._request('compose-chain', {
             'chain': {
                 'firstentry': {
-                    'extids': hex(ext_ids),
+                    'extids': [hex(x) for x in ext_ids],
                     'content': hex(content)
                 },
             },
@@ -653,7 +671,7 @@ class FactomWalletd(BaseAPI):
         calls = self._request('compose-entry', {
             'entry': {
                 'chainid': chain_id,
-                'extids': hex(ext_ids),
+                'extids': [hex(x) for x in ext_ids],
                 'content': hex(content)
             },
             'ecpub': ec_address or self.ec_address
