@@ -534,9 +534,10 @@ class FactomWalletd(BaseAPI):
         """
         return self._request('properties')
 
-    def sign_transaction(self, name):
+    def sign_transaction(self, name, force = False):
         return self._request('sign-transaction', {
-            'tx-name': name
+            'tx-name': name,
+            'force': force,
         })
 
     def sub_fee(self, name, fct_address):
