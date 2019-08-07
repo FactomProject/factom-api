@@ -149,11 +149,15 @@ class Factomd(BaseAPI):
         """
         return self._request("directory-block-head")
 
-    def entry(self, hash: Union[bytes, str]):
-        """Get an Entry from factomd specified by the Entry Hash."""
+    def entry(self, hash: Union[bytes, str], encode_as_hex: bool = False):
+        """
+        Get an Entry from factomd specified by the Entry Hash.
+        If `encode_as_hex` is True, content and external ids will be returned as hex strings rather than bytes-objects.
+        """
         resp = self._request("entry", {"hash": hash if type(hash) is str else hash.hex()})
-        resp["extids"] = [bytes.fromhex(x) for x in resp["extids"]]
-        resp["content"] = bytes.fromhex(resp["content"])
+        if not encode_as_hex:
+            resp["extids"] = [bytes.fromhex(x) for x in resp["extids"]]
+            resp["content"] = bytes.fromhex(resp["content"])
         return resp
 
     def entry_block(self, keymr: Union[bytes, str]):
@@ -297,25 +301,24 @@ class Factomd(BaseAPI):
 
     # Convenience methods
 
-    def read_chain(self, chain_id: Union[bytes, str], include_entry_context=False):
+    def read_chain(self, chain_id: Union[bytes, str], include_entry_context: bool = False, encode_as_hex: bool = False):
         """
         Shortcut method to read an entire chain.
 
         Args:
             chain_id (str): Chain ID to read.
-            include_entry_context (bool): Whether to include extra information like
-                entry hash, timestamp, and block height
+            include_entry_context (bool): Whether to include information like entry hash, timestamp, and block height
+            encode_as_hex (bool): Whether to encode external-ids and content in entry objects as hex or not
 
         Returns:
-            list[dict]: A list of entry dictionaries in reverse
-                chronologial order.
+            list[dict]: A list of entry dictionaries in reverse chronologial order.
         """
         entries = []
         keymr = self.chain_head(chain_id)["chainhead"]
         while keymr != NULL_BLOCK:
             block = self.entry_block(keymr)
             for entry_pointer in reversed(block["entrylist"]):
-                entry = self.entry(entry_pointer["entryhash"])
+                entry = self.entry(entry_pointer["entryhash"], encode_as_hex=encode_as_hex)
                 if include_entry_context:
                     entry["entryhash"] = entry_pointer["entryhash"]
                     entry["timestamp"] = entry_pointer["timestamp"]
