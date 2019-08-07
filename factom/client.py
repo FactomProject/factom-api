@@ -543,7 +543,9 @@ class FactomWalletd(BaseAPI):
         """
         return self._request("wallet-balances")
 
-    def new_chain(self, factomd: Factomd, ext_ids: List[bytes], content: bytes, ec_address: str = None):
+    def new_chain(
+        self, factomd: Factomd, ext_ids: List[Union[bytes, str]], content: Union[bytes, str], ec_address: str = None
+    ):
         """
         Shortcut method to create a new chain and initial entry.
 
@@ -561,7 +563,12 @@ class FactomWalletd(BaseAPI):
         calls = self._request(
             "compose-chain",
             {
-                "chain": {"firstentry": {"extids": [x.hex() for x in ext_ids], "content": content.hex()}},
+                "chain": {
+                    "firstentry": {
+                        "extids": [x if type(x) is str else x.hex() for x in ext_ids],
+                        "content": content if type(content) is str else content.hex(),
+                    }
+                },
                 "ecpub": ec_address or self.ec_address,
             },
         )
@@ -573,8 +580,8 @@ class FactomWalletd(BaseAPI):
         self,
         factomd: Factomd,
         chain_id: Union[bytes, str],
-        ext_ids: List[bytes],
-        content: bytes,
+        ext_ids: List[Union[bytes, str]],
+        content: Union[bytes, str],
         ec_address: str = None,
     ):
         """
@@ -595,8 +602,8 @@ class FactomWalletd(BaseAPI):
             {
                 "entry": {
                     "chainid": chain_id if type(chain_id) is str else chain_id.hex(),
-                    "extids": [x.hex() for x in ext_ids],
-                    "content": content.hex(),
+                    "extids": [x if type(x) is str else x.hex() for x in ext_ids],
+                    "content": content if type(content) is str else content.hex(),
                 },
                 "ecpub": ec_address or self.ec_address,
             },
