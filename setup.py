@@ -30,7 +30,7 @@ setup(
     author="Ben Homnick",
     author_email="bhomnick@gmail.com",
     name="factom-api",
-    version='1.0.0',
+    version='1.0.1',
     description="Python client library for the Factom API",
     long_description=long_description,
     license='MIT License',
