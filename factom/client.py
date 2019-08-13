@@ -72,13 +72,13 @@ class Factomd(BaseAPI):
     host = "http://localhost:8088"
 
     def admin_block(self, keymr: Union[bytes, str]):
-        """Retrieve a specified admin block given its key merkle root."""
+        """Retrieve a specified admin block given its key Merkle root."""
         return self._request("admin-block", {"keymr": utils.hex_from_bytes_or_string(keymr)})
 
     def admin_block_by_height(self, height: int):
         """
         Retrieves administrative blocks for any given height. The admin block contains data related to the identities
-        within the factom system and the decisions the system makes as it builds the blockchain.
+        within the Factom system and the decisions the system makes as it builds the blockchain.
         The abentries(admin block entries) in the JSON response can be of various types, the most common is a
         directory block signature(DBSig).
         """
@@ -138,7 +138,7 @@ class Factomd(BaseAPI):
         Every directory block has a KeyMR (Key Merkle Root), which can be used to retrieve it.
         The response will contain information that can be used to navigate through all transactions (entry
         and factoid) within that block. The header of the directory block will contain information regarding
-        the previous directory block key merkle root, directory block height, and the timestamp.
+        the previous directory block key Merkle root, directory block height, and the timestamp.
         """
         return self._request("directory-block", {"keymr": utils.hex_from_bytes_or_string(keymr)})
 
@@ -162,7 +162,7 @@ class Factomd(BaseAPI):
         return resp
 
     def entry_block(self, keymr: Union[bytes, str]):
-        """Retrieve a specified entry block given its merkle root key. The entry block contains 0 to many entries"""
+        """Retrieve a specified entry block given its Merkle root key. The entry block contains 0 to many entries"""
         return self._request("entry-block", {"keymr": utils.hex_from_bytes_or_string(keymr)})
 
     def entry_credit_balance(self, ec_address=None):
@@ -170,7 +170,7 @@ class Factomd(BaseAPI):
         return self._request("entry-credit-balance", {"address": ec_address or self.ec_address})
 
     def entry_credit_block(self, keymr: Union[bytes, str]):
-        """Retrieve a specified entry credit block (including minute markers) given its key merkle root."""
+        """Retrieve a specified entry credit block (including minute markers) given its key Merkle root."""
         return self._request("entrycredit-block", {"keymr": utils.hex_from_bytes_or_string(keymr)})
 
     def entry_credit_block_by_height(self, height: int):
@@ -195,7 +195,7 @@ class Factomd(BaseAPI):
         return self._request("fblock-by-height", {"height": height})
 
     def factoid_block_by_keymr(self, keymr: Union[bytes, str]):
-        """Retrieve a specified factoid block given its key merkle root."""
+        """Retrieve a specified factoid block given its key Merkle root."""
         return self._request("factoid-block", {"keymr": utils.hex_from_bytes_or_string(keymr)})
 
     def factoid_submit(self, transaction: Union[bytes, str]):
@@ -274,7 +274,7 @@ class Factomd(BaseAPI):
     def receipt(self, hash: Union[bytes, str], include_raw_entry: bool = False):
         """
         Retrieve a receipt providing cryptographically verifiable proof
-        that information was recorded in the factom blockchain and that
+        that information was recorded in the Factom blockchain and that
         this was subsequently anchored in the bitcoin blockchain.
         """
         return self._request(
