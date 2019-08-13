@@ -2,7 +2,7 @@ import random
 import string
 import time
 from typing import List, Union
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urljoin
 
 import factom.utils as utils
 from .exceptions import handle_error_response
@@ -52,11 +52,12 @@ class BaseAPI(object):
     def url(self):
         return urljoin(self.host, self.version)
 
-    def _xact_name(self):
+    @staticmethod
+    def _xact_name():
         return "TX_{}".format("".join(random.choices(string.ascii_uppercase + string.digits, k=6)))
 
-    def _request(self, method, params=None, id=0):
-        data = {"jsonrpc": "2.0", "id": id, "method": method}
+    def _request(self, method, params=None, request_id: int = 0):
+        data = {"jsonrpc": "2.0", "id": request_id, "method": method}
         if params:
             data["params"] = params
 
@@ -84,15 +85,15 @@ class Factomd(BaseAPI):
         """
         return self._request("ablock-by-height", {"height": height})
 
-    def anchors(self, hash: Union[bytes, str] = None, height: int = None):
+    def anchors(self, object_hash: Union[bytes, str] = None, height: int = None):
         """Retrieve the set of anchors for a given object hash or directory block height."""
-        if hash is None:
-            assert height is not None, "No hash provided, height must not be none"
+        if object_hash is None:
+            assert height is not None, "No object_hash provided, height must not be none"
             assert height >= 0, "Height must be >= 0"
             params = {"height": height}
         else:
             assert height is None, "Hash provided, height must be None"
-            params = {"hash": utils.hex_from_bytes_or_string(hash)}
+            params = {"hash": utils.hex_from_bytes_or_string(object_hash)}
 
         return self._request("anchors", params)
 
@@ -150,12 +151,12 @@ class Factomd(BaseAPI):
         """
         return self._request("directory-block-head")
 
-    def entry(self, hash: Union[bytes, str], encode_as_hex: bool = False):
+    def entry(self, entry_hash: Union[bytes, str], encode_as_hex: bool = False):
         """
         Get an Entry from factomd specified by the Entry Hash.
         If `encode_as_hex` is True, content and external ids will be returned as hex strings rather than bytes-objects.
         """
-        resp = self._request("entry", {"hash": utils.hex_from_bytes_or_string(hash)})
+        resp = self._request("entry", {"hash": utils.hex_from_bytes_or_string(entry_hash)})
         if not encode_as_hex:
             resp["extids"] = [bytes.fromhex(x) for x in resp["extids"]]
             resp["content"] = bytes.fromhex(resp["content"])
@@ -267,18 +268,18 @@ class Factomd(BaseAPI):
         """Retrieve current properties of the Factom system, including the software and the API versions."""
         return self._request("properties")
 
-    def raw_data(self, hash: Union[bytes, str]):
-        """Retrieve an entry or transaction in raw format, the data is a bytes object or hex encoded string."""
-        return self._request("raw-data", {"hash": utils.hex_from_bytes_or_string(hash)})
+    def raw_data(self, object_hash: Union[bytes, str]):
+        """Retrieve an entry, transaction, or block in raw (marshalled) format."""
+        return self._request("raw-data", {"hash": utils.hex_from_bytes_or_string(object_hash)})
 
-    def receipt(self, hash: Union[bytes, str], include_raw_entry: bool = False):
+    def receipt(self, entry_hash: Union[bytes, str], include_raw_entry: bool = False):
         """
         Retrieve a receipt providing cryptographically verifiable proof
         that information was recorded in the Factom blockchain and that
         this was subsequently anchored in the bitcoin blockchain.
         """
         return self._request(
-            "receipt", {"hash": utils.hex_from_bytes_or_string(hash), "includerawentry": include_raw_entry}
+            "receipt", {"hash": utils.hex_from_bytes_or_string(entry_hash), "includerawentry": include_raw_entry}
         )
 
     def reveal_chain(self, entry: Union[bytes, str]):
@@ -294,9 +295,9 @@ class Factomd(BaseAPI):
         """
         return self._request("send-raw-message", {"message": utils.hex_from_bytes_or_string(message)})
 
-    def transaction(self, hash: Union[bytes, str]):
+    def transaction(self, tx_hash: Union[bytes, str]):
         """Retrieve details of a factoid transaction using a transaction hash (or corresponding transaction id)."""
-        return self._request("transaction", {"hash": utils.hex_from_bytes_or_string(hash)})
+        return self._request("transaction", {"hash": utils.hex_from_bytes_or_string(tx_hash)})
 
     # Convenience methods
 
