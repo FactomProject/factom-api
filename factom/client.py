@@ -4,6 +4,7 @@ import time
 from typing import List, Union
 from urllib.parse import urlparse, urljoin
 
+import factom.utils as utils
 from .exceptions import handle_error_response
 from .session import FactomAPISession
 
@@ -72,7 +73,7 @@ class Factomd(BaseAPI):
 
     def admin_block(self, keymr: Union[bytes, str]):
         """Retrieve a specified admin block given its key merkle root."""
-        return self._request("admin-block", {"keymr": keymr if type(keymr) is str else keymr.hex()})
+        return self._request("admin-block", {"keymr": utils.hex_from_bytes_or_string(keymr)})
 
     def admin_block_by_height(self, height: int):
         """
@@ -91,18 +92,18 @@ class Factomd(BaseAPI):
             params = {"height": height}
         else:
             assert height is None, "Hash provided, height must be None"
-            params = {"hash": hash if type(hash) is str else hash.hex()}
+            params = {"hash": utils.hex_from_bytes_or_string(hash)}
 
         return self._request("anchors", params)
 
     def chain_head(self, chain_id: Union[bytes, str]):
-        return self._request("chain-head", {"chainid": chain_id if type(chain_id) is str else chain_id.hex()})
+        return self._request("chain-head", {"chainid": utils.hex_from_bytes_or_string(chain_id)})
 
     def commit_chain(self, message: Union[bytes, str]):
-        return self._request("commit-chain", {"message": message if type(message) is str else message.hex()})
+        return self._request("commit-chain", {"message": utils.hex_from_bytes_or_string(message)})
 
     def commit_entry(self, message: Union[bytes, str]):
-        return self._request("commit-entry", {"message": message if type(message) is str else message.hex()})
+        return self._request("commit-entry", {"message": utils.hex_from_bytes_or_string(message)})
 
     def current_minute(self):
         """
@@ -139,7 +140,7 @@ class Factomd(BaseAPI):
         and factoid) within that block. The header of the directory block will contain information regarding
         the previous directory block key merkle root, directory block height, and the timestamp.
         """
-        return self._request("directory-block", {"keymr": keymr if type(keymr) is str else keymr.hex()})
+        return self._request("directory-block", {"keymr": utils.hex_from_bytes_or_string(keymr)})
 
     def directory_block_head(self):
         """
@@ -154,7 +155,7 @@ class Factomd(BaseAPI):
         Get an Entry from factomd specified by the Entry Hash.
         If `encode_as_hex` is True, content and external ids will be returned as hex strings rather than bytes-objects.
         """
-        resp = self._request("entry", {"hash": hash if type(hash) is str else hash.hex()})
+        resp = self._request("entry", {"hash": utils.hex_from_bytes_or_string(hash)})
         if not encode_as_hex:
             resp["extids"] = [bytes.fromhex(x) for x in resp["extids"]]
             resp["content"] = bytes.fromhex(resp["content"])
@@ -162,7 +163,7 @@ class Factomd(BaseAPI):
 
     def entry_block(self, keymr: Union[bytes, str]):
         """Retrieve a specified entry block given its merkle root key. The entry block contains 0 to many entries"""
-        return self._request("entry-block", {"keymr": keymr if type(keymr) is str else keymr.hex()})
+        return self._request("entry-block", {"keymr": utils.hex_from_bytes_or_string(keymr)})
 
     def entry_credit_balance(self, ec_address=None):
         """Return its current balance for a specific entry credit address."""
@@ -170,7 +171,7 @@ class Factomd(BaseAPI):
 
     def entry_credit_block(self, keymr: Union[bytes, str]):
         """Retrieve a specified entry credit block (including minute markers) given its key merkle root."""
-        return self._request("entrycredit-block", {"keymr": keymr if type(keymr) is str else keymr.hex()})
+        return self._request("entrycredit-block", {"keymr": utils.hex_from_bytes_or_string(keymr)})
 
     def entry_credit_block_by_height(self, height: int):
         """
@@ -195,7 +196,7 @@ class Factomd(BaseAPI):
 
     def factoid_block_by_keymr(self, keymr: Union[bytes, str]):
         """Retrieve a specified factoid block given its key merkle root."""
-        return self._request("factoid-block", {"keymr": keymr if type(keymr) is str else keymr.hex()})
+        return self._request("factoid-block", {"keymr": utils.hex_from_bytes_or_string(keymr)})
 
     def factoid_submit(self, transaction: Union[bytes, str]):
         """
@@ -203,9 +204,7 @@ class Factomd(BaseAPI):
         If you have a factom-walletd instance running, you can construct this factoid-submit API call with
         compose-transaction which takes easier to construct arguments.
         """
-        return self._request(
-            "factoid-submit", {"transaction": transaction if type(transaction) is str else transaction.hex()}
-        )
+        return self._request("factoid-submit", {"transaction": utils.hex_from_bytes_or_string(transaction)})
 
     def heights(self):
         """
@@ -270,7 +269,7 @@ class Factomd(BaseAPI):
 
     def raw_data(self, hash: Union[bytes, str]):
         """Retrieve an entry or transaction in raw format, the data is a bytes object or hex encoded string."""
-        return self._request("raw-data", {"hash": hash if type(hash) is str else hash.hex()})
+        return self._request("raw-data", {"hash": utils.hex_from_bytes_or_string(hash)})
 
     def receipt(self, hash: Union[bytes, str], include_raw_entry: bool = False):
         """
@@ -279,25 +278,25 @@ class Factomd(BaseAPI):
         this was subsequently anchored in the bitcoin blockchain.
         """
         return self._request(
-            "receipt", {"hash": hash if type(hash) is str else hash.hex(), "includerawentry": include_raw_entry}
+            "receipt", {"hash": utils.hex_from_bytes_or_string(hash), "includerawentry": include_raw_entry}
         )
 
     def reveal_chain(self, entry: Union[bytes, str]):
-        return self._request("reveal-chain", {"entry": entry if type(entry) is str else entry.hex()})
+        return self._request("reveal-chain", {"entry": utils.hex_from_bytes_or_string(entry)})
 
     def reveal_entry(self, entry: Union[bytes, str]):
-        return self._request("reveal-entry", {"entry": entry if type(entry) is str else entry.hex()})
+        return self._request("reveal-entry", {"entry": utils.hex_from_bytes_or_string(entry)})
 
     def send_raw_message(self, message: Union[bytes, str]):
         """
         Send a raw hex encoded binary message to the Factom network.
         This is mostly just for debugging and testing.
         """
-        return self._request("send-raw-message", {"message": message if type(message) is str else message.hex()})
+        return self._request("send-raw-message", {"message": utils.hex_from_bytes_or_string(message)})
 
     def transaction(self, hash: Union[bytes, str]):
         """Retrieve details of a factoid transaction using a transaction hash (or corresponding transaction id)."""
-        return self._request("transaction", {"hash": hash if type(hash) is str else hash.hex()})
+        return self._request("transaction", {"hash": utils.hex_from_bytes_or_string(hash)})
 
     # Convenience methods
 
@@ -413,7 +412,7 @@ class FactomWalletd(BaseAPI):
         but it will not display the height of the transaction. If a height is in the response, it will be 0.
         To retrieve the height of a transaction, use the By Address method.
         """
-        return self._request("transactions", {"txid": tx_id if type(tx_id) is str else tx_id.hex()})
+        return self._request("transactions", {"txid": utils.hex_from_bytes_or_string(tx_id)})
 
     def transactions_by_address(self, fct_address: str):
         """Retrieves all transactions that involve a particular address."""
@@ -477,8 +476,8 @@ class FactomWalletd(BaseAPI):
             {
                 "chain": {
                     "firstentry": {
-                        "extids": [x if type(x) is str else x.hex() for x in ext_ids],
-                        "content": content if type(content) is str else content.hex(),
+                        "extids": [utils.hex_from_bytes_or_string(x) for x in ext_ids],
+                        "content": utils.hex_from_bytes_or_string(content),
                     }
                 },
                 "ecpub": ec_address or self.ec_address,
@@ -513,9 +512,9 @@ class FactomWalletd(BaseAPI):
             "compose-entry",
             {
                 "entry": {
-                    "chainid": chain_id if type(chain_id) is str else chain_id.hex(),
-                    "extids": [x if type(x) is str else x.hex() for x in ext_ids],
-                    "content": content if type(content) is str else content.hex(),
+                    "chainid": utils.hex_from_bytes_or_string(chain_id),
+                    "extids": [utils.hex_from_bytes_or_string(x) for x in ext_ids],
+                    "content": utils.hex_from_bytes_or_string(content),
                 },
                 "ecpub": ec_address or self.ec_address,
             },
