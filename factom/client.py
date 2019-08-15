@@ -302,7 +302,11 @@ class Factomd(BaseAPI):
     # Convenience methods
 
     def read_chain(
-        self, chain_id: str, from_height: int = 0, include_entry_context: bool = False, encode_as_hex: bool = False
+        self,
+        chain_id: Union[bytes, str],
+        from_height: int = 0,
+        include_entry_context: bool = False,
+        encode_as_hex: bool = False,
     ):
         """A generator that yields all entries of a chain in order, optionally starting from a given block height."""
         # Walk the entry block chain backwards to build up a stack of entry blocks to fetch
@@ -325,6 +329,30 @@ class Factomd(BaseAPI):
                     entry["timestamp"] = entry_pointer["timestamp"]
                     entry["dbheight"] = entry_block["header"]["dbheight"]
                 yield entry
+
+    def entries_at_height(
+        self, chain_id: Union[bytes, str], height: int, include_entry_context: bool = False, encode_as_hex: bool = False
+    ):
+        """A generator that yields all entries in a chain that occurred at the given height."""
+        # Look for the chain id in the directory block entries
+        target_chain_id = utils.hex_from_bytes_or_string(chain_id)
+        directory_block = self.directory_block_by_height(height)["dblock"]
+        for entry_block_pointer in directory_block["dbentries"]:
+            if entry_block_pointer["chainid"] == target_chain_id:
+                entry_block_keymr = entry_block_pointer["keymr"]
+                break
+        else:
+            return []  # Early return, chain didn't have entries in this block
+
+        # Entry block found, yield all entries within the block
+        entry_block = self.entry_block(entry_block_keymr)
+        for entry_pointer in entry_block["entrylist"]:
+            entry = self.entry(entry_pointer["entryhash"], encode_as_hex=encode_as_hex)
+            if include_entry_context:
+                entry["entryhash"] = entry_pointer["entryhash"]
+                entry["timestamp"] = entry_pointer["timestamp"]
+                entry["dbheight"] = entry_block["header"]["dbheight"]
+            yield entry
 
 
 class FactomWalletd(BaseAPI):
