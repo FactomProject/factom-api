@@ -301,7 +301,9 @@ class Factomd(BaseAPI):
 
     # Convenience methods
 
-    def read_chain(self, chain_id: str, from_height: int = 0, include_entry_context: bool = False, encode_as_hex: bool = False) -> list:
+    def read_chain(
+        self, chain_id: str, from_height: int = 0, include_entry_context: bool = False, encode_as_hex: bool = False
+    ):
         """A generator that yields all entries of a chain in order, optionally starting from a given block height."""
         # Walk the entry block chain backwards to build up a stack of entry blocks to fetch
         entry_blocks = []
@@ -316,7 +318,7 @@ class Factomd(BaseAPI):
         # Continuously pop off the stack and yield each entry one by one (in the order that they appear in the block)
         while len(entry_blocks) > 0:
             entry_block = entry_blocks.pop()
-            for entry_pointer in reversed(entry_block["entrylist"]):
+            for entry_pointer in entry_block["entrylist"]:
                 entry = self.entry(entry_pointer["entryhash"], encode_as_hex=encode_as_hex)
                 if include_entry_context:
                     entry["entryhash"] = entry_pointer["entryhash"]
