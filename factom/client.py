@@ -301,31 +301,28 @@ class Factomd(BaseAPI):
 
     # Convenience methods
 
-    def read_chain(self, chain_id: Union[bytes, str], include_entry_context: bool = False, encode_as_hex: bool = False):
-        """
-        Shortcut method to read an entire chain.
-
-        Args:
-            chain_id (str): Chain ID to read.
-            include_entry_context (bool): Whether to include information like entry hash, timestamp, and block height
-            encode_as_hex (bool): Whether to encode external-ids and content in entry objects as hex or not
-
-        Returns:
-            list[dict]: A list of entry dictionaries in reverse chronologial order.
-        """
-        entries = []
+    def read_chain(self, chain_id: str, from_height: int = 0, include_entry_context: bool = False, encode_as_hex: bool = False) -> list:
+        """A generator that yields all entries of a chain in order, optionally starting from a given block height."""
+        # Walk the entry block chain backwards to build up a stack of entry blocks to fetch
+        entry_blocks = []
         keymr = self.chain_head(chain_id)["chainhead"]
         while keymr != NULL_BLOCK:
             block = self.entry_block(keymr)
-            for entry_pointer in reversed(block["entrylist"]):
+            if block["header"]["dbheight"] < from_height:
+                break
+            entry_blocks.append(block)
+            keymr = block["header"]["prevkeymr"]
+
+        # Continuously pop off the stack and yield each entry one by one (in the order that they appear in the block)
+        while len(entry_blocks) > 0:
+            entry_block = entry_blocks.pop()
+            for entry_pointer in reversed(entry_block["entrylist"]):
                 entry = self.entry(entry_pointer["entryhash"], encode_as_hex=encode_as_hex)
                 if include_entry_context:
                     entry["entryhash"] = entry_pointer["entryhash"]
                     entry["timestamp"] = entry_pointer["timestamp"]
-                    entry["dbheight"] = block["header"]["dbheight"]
-                entries.append(entry)
-            keymr = block["header"]["prevkeymr"]
-        return entries
+                    entry["dbheight"] = entry_block["header"]["dbheight"]
+                yield entry
 
 
 class FactomWalletd(BaseAPI):
