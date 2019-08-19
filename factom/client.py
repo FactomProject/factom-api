@@ -301,31 +301,56 @@ class Factomd(BaseAPI):
 
     # Convenience methods
 
-    def read_chain(self, chain_id: Union[bytes, str], include_entry_context: bool = False, encode_as_hex: bool = False):
-        """
-        Shortcut method to read an entire chain.
+    def entries_in_entry_block(self, block: dict, include_entry_context: bool = False, encode_as_hex: bool = False):
+        """A generator that yields all entries within a given entry block"""
+        for entry_pointer in block["entrylist"]:
+            entry = self.entry(entry_pointer["entryhash"], encode_as_hex=encode_as_hex)
+            if include_entry_context:
+                entry["entryhash"] = entry_pointer["entryhash"]
+                entry["timestamp"] = entry_pointer["timestamp"]
+                entry["dbheight"] = block["header"]["dbheight"]
+            yield entry
 
-        Args:
-            chain_id (str): Chain ID to read.
-            include_entry_context (bool): Whether to include information like entry hash, timestamp, and block height
-            encode_as_hex (bool): Whether to encode external-ids and content in entry objects as hex or not
-
-        Returns:
-            list[dict]: A list of entry dictionaries in reverse chronologial order.
-        """
-        entries = []
+    def read_chain(
+        self,
+        chain_id: Union[bytes, str],
+        from_height: int = 0,
+        include_entry_context: bool = False,
+        encode_as_hex: bool = False,
+    ):
+        """A generator that yields all entries of a chain in order, optionally starting from a given block height."""
+        # Walk the entry block chain backwards to build up a stack of entry blocks to fetch
+        entry_blocks = []
         keymr = self.chain_head(chain_id)["chainhead"]
         while keymr != NULL_BLOCK:
             block = self.entry_block(keymr)
-            for entry_pointer in reversed(block["entrylist"]):
-                entry = self.entry(entry_pointer["entryhash"], encode_as_hex=encode_as_hex)
-                if include_entry_context:
-                    entry["entryhash"] = entry_pointer["entryhash"]
-                    entry["timestamp"] = entry_pointer["timestamp"]
-                    entry["dbheight"] = block["header"]["dbheight"]
-                entries.append(entry)
+            if block["header"]["dbheight"] < from_height:
+                break
+            entry_blocks.append(block)
             keymr = block["header"]["prevkeymr"]
-        return entries
+
+        # Continuously pop off the stack and yield each entry one by one (in the order that they appear in the block)
+        while len(entry_blocks) > 0:
+            entry_block = entry_blocks.pop()
+            yield from self.entries_in_entry_block(entry_block, include_entry_context, encode_as_hex)
+
+    def entries_at_height(
+        self, chain_id: Union[bytes, str], height: int, include_entry_context: bool = False, encode_as_hex: bool = False
+    ):
+        """A generator that yields all entries in a chain that occurred at the given height."""
+        # Look for the chain id in the directory block entries
+        target_chain_id = utils.hex_from_bytes_or_string(chain_id)
+        directory_block = self.directory_block_by_height(height)["dblock"]
+        for entry_block_pointer in directory_block["dbentries"]:
+            if entry_block_pointer["chainid"] == target_chain_id:
+                entry_block_keymr = entry_block_pointer["keymr"]
+                break
+        else:
+            return []  # Early return, chain didn't have entries in this block
+
+        # Entry block found, yield all entries within the block
+        entry_block = self.entry_block(entry_block_keymr)
+        yield from self.entries_in_entry_block(entry_block, include_entry_context, encode_as_hex)
 
 
 class FactomWalletd(BaseAPI):
