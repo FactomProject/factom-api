@@ -301,6 +301,16 @@ class Factomd(BaseAPI):
 
     # Convenience methods
 
+    def entries_in_entry_block(self, block: dict, include_entry_context: bool = False, encode_as_hex: bool = False):
+        """A generator that yields all entries within a given entry block"""
+        for entry_pointer in block["entrylist"]:
+            entry = self.entry(entry_pointer["entryhash"], encode_as_hex=encode_as_hex)
+            if include_entry_context:
+                entry["entryhash"] = entry_pointer["entryhash"]
+                entry["timestamp"] = entry_pointer["timestamp"]
+                entry["dbheight"] = block["header"]["dbheight"]
+            yield entry
+
     def read_chain(
         self,
         chain_id: Union[bytes, str],
@@ -322,13 +332,7 @@ class Factomd(BaseAPI):
         # Continuously pop off the stack and yield each entry one by one (in the order that they appear in the block)
         while len(entry_blocks) > 0:
             entry_block = entry_blocks.pop()
-            for entry_pointer in entry_block["entrylist"]:
-                entry = self.entry(entry_pointer["entryhash"], encode_as_hex=encode_as_hex)
-                if include_entry_context:
-                    entry["entryhash"] = entry_pointer["entryhash"]
-                    entry["timestamp"] = entry_pointer["timestamp"]
-                    entry["dbheight"] = entry_block["header"]["dbheight"]
-                yield entry
+            yield from self.entries_in_entry_block(entry_block, include_entry_context, encode_as_hex)
 
     def entries_at_height(
         self, chain_id: Union[bytes, str], height: int, include_entry_context: bool = False, encode_as_hex: bool = False
@@ -346,13 +350,7 @@ class Factomd(BaseAPI):
 
         # Entry block found, yield all entries within the block
         entry_block = self.entry_block(entry_block_keymr)
-        for entry_pointer in entry_block["entrylist"]:
-            entry = self.entry(entry_pointer["entryhash"], encode_as_hex=encode_as_hex)
-            if include_entry_context:
-                entry["entryhash"] = entry_pointer["entryhash"]
-                entry["timestamp"] = entry_pointer["timestamp"]
-                entry["dbheight"] = entry_block["header"]["dbheight"]
-            yield entry
+        yield from self.entries_in_entry_block(entry_block, include_entry_context, encode_as_hex)
 
 
 class FactomWalletd(BaseAPI):
