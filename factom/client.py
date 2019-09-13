@@ -483,7 +483,11 @@ class FactomWalletd(BaseAPI):
         return self._request("wallet-balances")
 
     def new_chain(
-        self, factomd: Factomd, ext_ids: List[Union[bytes, str]], content: Union[bytes, str], ec_address: str = None
+        self,
+        factomd: Factomd,
+        ext_ids: List[Union[bytes, str]],
+        content: Union[bytes, str],
+        ec_address: str = None
     ):
         """
         Shortcut method to create a new chain and initial entry.
