@@ -487,7 +487,8 @@ class FactomWalletd(BaseAPI):
         factomd: Factomd,
         ext_ids: List[Union[bytes, str]],
         content: Union[bytes, str],
-        ec_address: str = None
+        ec_address: str = None,
+        sleep: int = 1,
     ):
         """
         Shortcut method to create a new chain and initial entry.
@@ -497,6 +498,7 @@ class FactomWalletd(BaseAPI):
             ext_ids (List[Union[bytes, str]]): A list of external IDs as bytes-like objects or hex strings
             content (Union[bytes, str]): Entry content as a bytes like object or hex string
             ec_address (str): Entry credit address to pay with. If not provided, `self.ec_address` will be used.
+            sleep (int): Number of seconds to sleep between chain commit and reveal. Default is 1.
 
         Returns:
             dict: API result from the final `reveal_chain()` call.
@@ -514,7 +516,7 @@ class FactomWalletd(BaseAPI):
             },
         )
         factomd.commit_chain(calls["commit"]["params"]["message"])
-        time.sleep(2)
+        time.sleep(sleep)
         return factomd.reveal_chain(calls["reveal"]["params"]["entry"])
 
     def new_entry(
@@ -524,6 +526,7 @@ class FactomWalletd(BaseAPI):
         ext_ids: List[Union[bytes, str]],
         content: Union[bytes, str],
         ec_address: str = None,
+        sleep: int = 1,
     ):
         """
         Shortcut method to create a new entry.
@@ -534,6 +537,7 @@ class FactomWalletd(BaseAPI):
             ext_ids (List[Union[bytes, str]]): A list of external IDs as bytes-like objects or hex strings
             content (Union[bytes, str]): Entry content as a bytes like object or hex string
             ec_address (str): Entry credit address to pay with. If not provided, `self.ec_address` will be used.
+            sleep (int): Number of seconds to sleep between entry commit and reveal. Default is 1.
 
         Returns:
             dict: API result from the final `reveal_chain()` call.
@@ -550,7 +554,7 @@ class FactomWalletd(BaseAPI):
             },
         )
         factomd.commit_entry(calls["commit"]["params"]["message"])
-        time.sleep(2)
+        time.sleep(sleep)
         return factomd.reveal_entry(calls["reveal"]["params"]["entry"])
 
     def fct_to_ec(self, factomd: Factomd, amount: int, fct_address: str = None, ec_address: str = None):
