@@ -171,4 +171,29 @@ Chain da2ffed0ae7b33acc718089edc0f1d001289857cc27a49b6bc4dd22fac971495 already e
 
 If you'd like to catch more specific errors, there are exception subclasses for the different error codes returned by the APIs. See [factom/exceptions.py](factom/exceptions.py) for a list.
 
+### Listening to LiveFeed
 
+The LiveFeed in factomd pipes out data corresponding to various network events and pieces of work that were accomplished, such as processing an entry or sealing a directory block. The `factom.livefeed.LiveFeedShovel` class listens to the LiveFeed and handles that data in some way. As an example, if you had JSON output turned on for the LiveFeed:
+
+```python
+import logging
+import time
+from factom.livefeed.listener import LiveFeedListener
+
+
+def log_event(event_payload: bytes):
+    logging.info(f"Event: {event_payload.decode()}")
+
+
+listener = LiveFeedListener(handle=log_event)
+
+while True:
+    try:
+        listener.run()
+    except ConnectionResetError:
+        logging.warning("Connection reset by peer. Sleeping 5 seconds and restarting...")
+        time.sleep(5)
+    except KeyboardInterrupt:
+        logging.info("KeyboardInterrupt received, shutting down...")
+        break
+```
