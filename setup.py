@@ -3,13 +3,6 @@
 from setuptools import setup, find_packages
 
 
-try:
-    import pypandoc
-    long_description = pypandoc.convert("README.md", "rst")
-except (IOError, ImportError, OSError):
-    long_description = open("README.md").read()
-
-
 CLASSIFIERS = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -32,7 +25,6 @@ setup(
     name="factom-api",
     version="1.1.0",
     description="Python client library for the Factom API",
-    long_description=long_description,
     license="MIT License",
     platforms=["OS Independent"],
     classifiers=CLASSIFIERS,
