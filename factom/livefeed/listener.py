@@ -40,7 +40,6 @@ class LiveFeedListener:
                             message_data = conn.recv(next_message_size)
                             remaining_bytes = next_message_size - len(message_data)
                             while remaining_bytes > 0:
-                                more_message_data = conn.recv(remaining_bytes)
-                                message_data = message_data + more_message_data
+                                message_data += conn.recv(remaining_bytes)
                                 remaining_bytes = next_message_size - len(message_data)
                             self.handle(message_data)
