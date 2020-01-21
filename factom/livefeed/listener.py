@@ -38,4 +38,8 @@ class LiveFeedListener:
                         next_message_size = struct.unpack("<i", next_message_size_bytes)[0]
                         if next_message_size is not None:
                             message_data = conn.recv(next_message_size)
+                            remaining_bytes = next_message_size - len(message_data)
+                            while remaining_bytes > 0:
+                                message_data += conn.recv(remaining_bytes)
+                                remaining_bytes = next_message_size - len(message_data)
                             self.handle(message_data)
