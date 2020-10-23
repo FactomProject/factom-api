@@ -6,16 +6,16 @@ from typing import Callable
 
 class LiveFeedListener:
     """
-    A simple class that listens to Factomd LiveFeed and performs a custom handle function
-    on each event sent over the feed.
-    """
+    A simple class that listens to Factomd LiveFeed and performs a custom handle
+    function on each event sent over the feed.
 
+    Args:
+        handle (callable): A function receiving a bytes-like variable as its
+            only parameter. Handles all LiveFeed events.
+        host (str): The host of the LiveFeed to listen to.
+        port (int): The port on which LiveFeed is configured.
+    """
     def __init__(self, handle: Callable, host: str = "127.0.0.1", port: int = 8040):
-        """
-        :param handle: A function receiving a bytes-like variable as it's only parameter. Handles all LiveFeed events
-        :param host: The host of the LiveFeed to listen to
-        :param port: The port on which LiveFeed is configured
-        """
         self.handle = handle
         self.host = host
         self.port = port

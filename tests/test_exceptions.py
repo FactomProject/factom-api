@@ -1,8 +1,9 @@
 import json
+
 import pytest
 from requests import Response
 
-from factom.exceptions import handle_error_response, InvalidRequest
+from factom.exceptions import InvalidRequest, handle_error_response
 
 
 def _response(content):

@@ -1,1 +1,1 @@
-from .listener import LiveFeedListener
+from .listener import LiveFeedListener  # noqa

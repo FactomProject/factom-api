@@ -1,8 +1,11 @@
 # factom-api
 
+![CircleCI](https://img.shields.io/circleci/build/github/FactomProject/factom-api)
+![PyPI](https://img.shields.io/pypi/v/factom-api)
+
 This library provides Python clients for interacting with the factomd and factom-walletd APIs. While not all API methods have been implemented yet, you'll find most of what you need to build a working application are available, along with shortcut methods for accomplishing common tasks involving multiple calls between the wallet and daemon.
 
-Because Python 2 is reaching EOL, this API client (from version 1.0.0 onwards) targets Python 3.5 and higher.
+This API client (from version 1.2 onwards) supports Python 3.5 and higher.
 
 If you're unfamiliar with Factom, I encourage you to [read the documentation](http://docs.factom.com/), especially the [white paper](https://github.com/FactomProject/FactomDocs/blob/master/whitepaper.md). In a nutshell, Factom provides a layer on top of the Bitcoin blockchain making it possible to secure data faster and in larger amounts than the Bitcoin network would allow alone.
 
@@ -165,7 +168,7 @@ More data about the error is attached to the exception instance:
 ...     walletd.new_chain(factomd, ['random', 'chain', 'id'], 'chain_content', ec_address=ec_address)
 ... except FactomAPIError as e:
 ...     print(e.data)
-... 
+...
 Chain da2ffed0ae7b33acc718089edc0f1d001289857cc27a49b6bc4dd22fac971495 already exists
 ```
 
