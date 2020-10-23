@@ -1,12 +1,10 @@
-import pytest
-try:
-    from unittest.mock import patch
-except ImportError:
-    from mock import patch
+from unittest.mock import patch
 
-from . import assert_jsonrpc_calls, responses  # noqa
+import pytest
 
 from factom.client import Factomd, FactomWalletd
+
+from . import assert_jsonrpc_calls, responses  # noqa
 
 
 FA_1 = 'FA2jK2HcLnRdS94dEcU27rF3meoJfpUcZPSinpb7AwQvPRY6RL1Q'
@@ -54,7 +52,7 @@ def test_fct_to_ec(responses, factomd, walletd):  # noqa
             'amount': 50000
         }),
         ('add-fee', {'tx-name': 'TX_5XK1IX', 'address': FA_1}),
-        ('sign-transaction', {'tx-name': 'TX_5XK1IX'}),
+        ('sign-transaction', {'tx-name': 'TX_5XK1IX', 'force': False}),
         ('compose-transaction', {'tx-name': 'TX_5XK1IX'}),
         ('factoid-submit', {'transaction': TX})
     ])
@@ -80,14 +78,14 @@ def test_fct_to_fct(responses, factomd, walletd):  # noqa
             'amount': 50000
         }),
         ('add-fee', {'tx-name': 'TX_5XK1IX', 'address': FA_1}),
-        ('sign-transaction', {'tx-name': 'TX_5XK1IX'}),
+        ('sign-transaction', {'tx-name': 'TX_5XK1IX', 'force': False}),
         ('compose-transaction', {'tx-name': 'TX_5XK1IX'}),
         ('factoid-submit', {'transaction': TX})
     ])
 
 
 def test_new_chain(responses, factomd, walletd):  # noqa
-    res = walletd.new_chain(factomd, ['chain', 'id'], 'chain_content')
+    res = walletd.new_chain(factomd, [b'chain', b'id'], b'chain_content')
 
     assert res == {
         'chainid': CHAIN_ID,
@@ -110,8 +108,8 @@ def test_new_chain(responses, factomd, walletd):  # noqa
 
 
 def test_new_entry(responses, factomd, walletd):  # noqa
-    res = walletd.new_entry(factomd, CHAIN_ID, ['entry', 'id'],
-                            'entry_content')
+    res = walletd.new_entry(factomd, CHAIN_ID, [b'entry', b'id'],
+                            b'entry_content')
 
     assert res == {
         'chainid': CHAIN_ID,
@@ -133,12 +131,12 @@ def test_new_entry(responses, factomd, walletd):  # noqa
 
 
 def test_read_chain(responses, factomd, walletd):  # noqa
-    res = factomd.read_chain(CHAIN_ID)
+    res = list(factomd.read_chain(CHAIN_ID))
 
     assert res == [{
         'chainid': CHAIN_ID,
-        'extids': ['chain', 'id'],
-        'content': 'chain_content'
+        'extids': [b'chain', b'id'],
+        'content': b'chain_content'
     }]
     assert_jsonrpc_calls(responses, [
         ('chain-head', {'chainid': CHAIN_ID}),
